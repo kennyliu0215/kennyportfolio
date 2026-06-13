@@ -730,8 +730,8 @@
 
   function mapBrightness(lum) {
     // Hard thresholds — no interpolation, exactly 3 colours
-    if (lum < 85)  return [PALETTE[0].r, PALETTE[0].g, PALETTE[0].b]; // black
-    if (lum < 170) return [PALETTE[1].r, PALETTE[1].g, PALETTE[1].b]; // red
+    if (lum < 110)  return [PALETTE[0].r, PALETTE[0].g, PALETTE[0].b]; // black
+    if (lum < 145) return [PALETTE[1].r, PALETTE[1].g, PALETTE[1].b]; // red
                    return [PALETTE[2].r, PALETTE[2].g, PALETTE[2].b]; // white
   }
 
