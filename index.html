@@ -729,20 +729,10 @@
   ];
 
   function mapBrightness(lum) {
-    // Find surrounding stops and lerp between them
-    let lo = PALETTE[0], hi = PALETTE[PALETTE.length - 1];
-    for (let i = 0; i < PALETTE.length - 1; i++) {
-      if (lum >= PALETTE[i].stop && lum <= PALETTE[i + 1].stop) {
-        lo = PALETTE[i]; hi = PALETTE[i + 1]; break;
-      }
-    }
-    const range = hi.stop - lo.stop || 1;
-    const t = (lum - lo.stop) / range;
-    return [
-      Math.round(lo.r + (hi.r - lo.r) * t),
-      Math.round(lo.g + (hi.g - lo.g) * t),
-      Math.round(lo.b + (hi.b - lo.b) * t),
-    ];
+    // Hard thresholds — no interpolation, exactly 3 colours
+    if (lum < 85)  return [PALETTE[0].r, PALETTE[0].g, PALETTE[0].b]; // black
+    if (lum < 170) return [PALETTE[1].r, PALETTE[1].g, PALETTE[1].b]; // red
+                   return [PALETTE[2].r, PALETTE[2].g, PALETTE[2].b]; // white
   }
 
   function renderPentone(img, canvas) {
