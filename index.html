@@ -1,1 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maker Portfolio</title>
 
+  <!--
+    ═══════════════════════════════════════════════════════════
+    FONT SETUP — ITC Avant Garde Gothic
+    ═══════════════════════════════════════════════════════════
+    Option A (Adobe Fonts — recommended):
+      1. fonts.adobe.com → search "ITC Avant Garde Gothic Pro" → Web Project
+      2. Replace the <link> below with the one Adobe gives you.
+         font-family is already set to 'itc-avant-garde-gothic-pro'.
+
+    Option B (self-host):
+      Place .woff2 files in assets/fonts/ and add @font-face rules.
+    ═══════════════════════════════════════════════════════════
+  -->
+  <link rel="stylesheet" href="https://use.typekit.net/XXXXXXX.css">
+
+  <style>
+    /* ─── TOKENS ────────────────────────────────────────────── */
+    :root {
+      --white:   #F2F0EB;
+      --black:   #1A1A1A;
+      --red:     #D0310E;
+      --grey:    #9B9B8A;
+      --rule:    1px solid #1A1A1A;
+      --rule-lt: 1px solid rgba(26,26,26,0.15);
+      --font:    'itc-avant-garde-gothic-pro','Century Gothic','Avant Garde',Futura,sans-serif;
+      --grid:    1200px;
+      --gap:     32px;
+
+      /* Heights for offset calculations */
+      --h-header:   88px;   /* sticky site header */
+      --h-timeline: 40px;   /* sticky timeline bar */
+      --h-year-col: 48px;   /* left year column width */
+
+    }
+
+    /* ─── RESET ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      background: var(--white);
+      color: var(--black);
+      font-family: var(--font);
+      font-weight: 400;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; width: 100%; }
+
+    /* ─── SITE HEADER (sticky) ───────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--white);
+      border-bottom: var(--rule);
+      padding: 16px 0 0;
+      /* subtle shadow to separate from content below */
+      box-shadow: 0 1px 0 0 var(--black);
+    }
+    .header-inner {
+      max-width: var(--grid);
+      margin: 0 auto;
+      padding: 0 var(--gap);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding-bottom: 14px;
+    }
+    .site-name {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .site-discipline {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--grey);
+    }
+    nav {
+      max-width: var(--grid);
+      margin: 0 auto;
+      padding: 0 var(--gap);
+      display: flex;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-top: 3px solid transparent;
+      padding: 10px 28px 10px 0;
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--grey);
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+    }
+    .tab-btn:hover { color: var(--black); }
+    .tab-btn.active { color: var(--black); border-top-color: var(--red); }
+
+    /* ─── TIMELINE BAR (sticky, per tab) ─────────────────────── */
+    /*
+      Each .tab-panel has a .timeline-bar at the top.
+      When the panel is active and the bar reaches the bottom
+      of the site header, it sticks — achieved with
+      position:sticky + top: var(--h-header).
+    */
+    .timeline-bar {
+      position: sticky;
+      top: var(--h-header);
+      z-index: 90;
+      background: var(--white);
+      border-bottom: var(--rule);
+      height: var(--h-timeline);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    .timeline-inner {
+      /* sits inside .container — same padding as page */
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 0;
+      /* left padding accounts for the year-column */
+      padding-left: calc(var(--h-year-col) + var(--gap));
+    }
+    .tl-track {
+      flex: 1;
+      position: relative;
+      height: 2px;
+      background: var(--rule-lt);
+    }
+    /* The red progress line — width driven by JS via --progress CSS var */
+    .tl-track::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0;
+      height: 100%;
+      width: calc(var(--progress, 0) * 100%);
+      background: var(--red);
+      transition: width .05s linear;
+    }
+    .tl-nodes {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+    }
+    .tl-node {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      cursor: pointer;
+    }
+    .tl-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--grey);
+      border: 1.5px solid var(--grey);
+      transition: background .2s, border-color .2s;
+    }
+    .tl-node.passed .tl-dot,
+    .tl-node.current .tl-dot {
+      background: var(--red);
+      border-color: var(--red);
+    }
+    .tl-node-label {
+      position: absolute;
+      top: 12px;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--grey);
+      white-space: nowrap;
+      transition: color .2s;
+    }
+    .tl-node.passed .tl-node-label,
+    .tl-node.current .tl-node-label { color: var(--black); }
+
+    /* ─── MAIN ───────────────────────────────────────────────── */
+    main { padding-bottom: 96px; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ─── YEAR-GROUP LAYOUT ──────────────────────────────────── */
+    /*
+      Each .year-group contains:
+        .year-label  — rotated text, stickied within its group
+        .year-content — the project grid for that year
+      Uses a side-by-side layout via CSS grid.
+    */
+    .container {
+      max-width: var(--grid);
+      margin: 0 auto;
+      padding: 0 var(--gap);
+    }
+
+    .section-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--gap);
+      border-bottom: var(--rule);
+      padding: 40px 0 24px;
+      margin-bottom: 0;
+      align-items: end;
+    }
+    .section-title {
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .section-desc {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--grey);
+      max-width: 42ch;
+    }
+
+    /* Year group row */
+    .year-group {
+      display: grid;
+      grid-template-columns: var(--h-year-col) 1fr;
+      border-bottom: var(--rule-lt);
+      padding: 40px 0;
+    }
+    .year-group:last-child { border-bottom: none; }
+
+    /* The sticky year label column */
+    .year-label-col {
+      position: relative;
+    }
+    .year-label {
+      position: sticky;
+      /* sticks below header + timeline */
+      top: calc(var(--h-header) + var(--h-timeline) + 16px);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      height: 80px; /* enough to show the rotated text */
+    }
+    .year-label span {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--red);
+      writing-mode: vertical-rl;
+      transform: rotate(180deg); /* read bottom-to-top = normal upward text */
+    }
+
+    /* Project grid inside each year group */
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--gap);
+    }
+
+    /* ─── CARD ───────────────────────────────────────────────── */
+    .card {
+      display: flex;
+      flex-direction: column;
+      border-top: var(--rule);
+      padding-top: 16px;
+      cursor: pointer;
+    }
+    .card-img-wrap {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+      background: var(--black);
+      margin-bottom: 20px;
+    }
+    /*
+      PENTONE EFFECT (5-stop brightness remap via Canvas)
+      ─────────────────────────────────────────────────────
+      Structure inside .card-img-wrap:
+        <canvas>  — pentone-mapped static layer, always visible
+        <img>     — real photo, opacity:0 at rest, fades to 1 on hover
+
+      JS draws the mapped image onto the canvas once the photo loads.
+      On hover: img fades in over the canvas. On hover-out: fades back.
+    */
+    .card-img-wrap canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .card-img-wrap img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity .5s ease;
+    }
+    .card:hover .card-img-wrap img { opacity: 1; }
+
+    .card-meta {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--grey);
+      margin-bottom: 6px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 8px;
+    }
+    .card-body {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--grey);
+      flex: 1;
+    }
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 14px;
+    }
+    .tag {
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border: 1px solid var(--grey);
+      color: var(--grey);
+    }
+
+    /* ─── ABOUT ──────────────────────────────────────────────── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: calc(var(--gap) * 2);
+      align-items: start;
+      padding: 56px 0;
+    }
+    .about-img-wrap {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 3 / 4;
+      background: var(--black);
+    }
+    .about-img-wrap canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .about-img-wrap img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity .5s ease;
+    }
+    .about-img-wrap:hover img { opacity: 1; }
+
+    .about-text { padding-top: 8px; }
+    .about-name {
+      font-size: clamp(32px,4vw,56px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-bottom: 24px;
+    }
+    .about-name span { color: var(--red); }
+    .about-rule { width: 40px; height: 3px; background: var(--red); margin-bottom: 24px; }
+    .about-bio {
+      font-size: 15px;
+      line-height: 1.75;
+      max-width: 60ch;
+      margin-bottom: 24px;
+    }
+    .about-skills { border-top: var(--rule); padding-top: 24px; }
+    .about-skills-label {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--grey);
+      margin-bottom: 16px;
+    }
+    .skills-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .skill-chip {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border: var(--rule);
+    }
+    .skill-chip.highlight { background: var(--black); color: var(--white); }
+
+    /* ─── FOOTER ─────────────────────────────────────────────── */
+    footer {
+      border-top: var(--rule);
+      padding: 24px var(--gap);
+      max-width: var(--grid);
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-name { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+    .footer-contact { font-size: 11px; letter-spacing: 0.12em; color: var(--grey); }
+    .footer-contact a:hover { color: var(--red); }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .project-grid { grid-template-columns: repeat(2,1fr); }
+      .section-header { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .project-grid { grid-template-columns: 1fr; }
+      .tab-btn { padding: 10px 14px 10px 0; font-size: 9px; }
+      .year-group { grid-template-columns: 32px 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .card-img-wrap img,
+      .about-img-wrap img,
+      .tl-track::before { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ SITE HEADER (sticky) ═══════════════════════════════ -->
+  <header>
+    <div class="header-inner">
+      <span class="site-name">Your Name</span>
+      <span class="site-discipline">Mechanical Design &amp; 3D Modelling</span>
+    </div>
+    <nav role="tablist" aria-label="Portfolio sections">
+      <button class="tab-btn active" role="tab" aria-selected="true"  data-panel="solidworks">SolidWorks</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-panel="onshape">Onshape</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-panel="blender">Blender</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" data-panel="about">About</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ═══ SOLIDWORKS ════════════════════════════════════════ -->
+    <section id="solidworks" class="tab-panel active" role="tabpanel">
+
+      <!-- Timeline bar (sticky below header) -->
+      <div class="timeline-bar" id="tl-solidworks">
+        <div class="container">
+          <div class="timeline-inner">
+            <div class="tl-track" id="tl-track-solidworks">
+              <div class="tl-nodes" id="tl-nodes-solidworks"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="section-header">
+          <h1 class="section-title">SolidWorks</h1>
+          <p class="section-desc">Parametric part and assembly design. Each project built around constraint-driven geometry and design-for-manufacture intent.</p>
+        </div>
+
+        <!-- Year group: 2024 -->
+        <div class="year-group" data-year="2024">
+          <div class="year-label-col">
+            <div class="year-label"><span>2024</span></div>
+          </div>
+          <div class="project-grid">
+            <article class="card">
+              <div class="card-img-wrap">
+                <canvas aria-hidden="true"></canvas><img src="assets/images/Kenny Liu_The World of Blender_1.png" alt="Gearbox Assembly" loading="lazy">
+              </div>
+              <p class="card-meta">Assembly · 2024</p>
+              <h2 class="card-title">Two-Stage Gearbox</h2>
+              <p class="card-body">Fully constrained assembly with 14 unique parts. Designed to spec for a 5:1 reduction ratio, toleranced for FDM manufacture.</p>
+              <div class="card-tags"><span class="tag">Sheet Metal</span><span class="tag">FEA</span><span class="tag">GD&amp;T</span></div>
+            </article>
+            <article class="card">
+              <div class="card-img-wrap">
+                <canvas aria-hidden="true"></canvas><img src="https://placehold.co/800x600/1A1A1A/9B9B8A?text=Project+Image" alt="Bracket" loading="lazy">
+              </div>
+              <p class="card-meta">Sheet Metal · 2024</p>
+              <h2 class="card-title">Weld-Form Bracket</h2>
+              <p class="card-body">Sheet metal bracket from flat pattern to finished weldment. Bend allowances calculated for 16ga mild steel.</p>
+              <div class="card-tags"><span class="tag">Sheet Metal</span><span class="tag">Weldment</span></div>
+            </article>
+          </div>
+        </div>
+
+        <!-- Year group: 2023 -->
+        <div class="year-group" data-year="2023">
+          <div class="year-label-col">
+            <div class="year-label"><span>2023</span></div>
+          </div>
+          <div class="project-grid">
+            <article class="card">
+              <div class="card-img-wrap">
+                <canvas aria-hidden="true"></canvas><img src="https://placehold.co/800x600/1A1A1A/9B9B8A?text=Project+Image" alt="Enclosure" loading="lazy">
+              </div>
+              <p class="card-meta">Part · 2023</p>
+              <h2 class="card-title">Electronics Enclosure</h2>
+              <p class="card-body">Snap-fit enclosure for custom PCB. Boss-and-rib structure, designed with 1° draft angles throughout.</p>
+              <div class="card-tags"><span class="tag">Injection Mould</span><span class="tag">Snap-Fit</span></div>
+            </article>
+          </div>
+        </div>
+
+      </div><!-- /container -->
+    </section>
+
+    <!-- ═══ ONSHAPE ═══════════════════════════════════════════ -->
+    <section id="onshape" class="tab-panel" role="tabpanel">
+
+      <div class="timeline-bar" id="tl-onshape">
+        <div class="container">
+          <div class="timeline-inner">
+            <div class="tl-track" id="tl-track-onshape">
+              <div class="tl-nodes" id="tl-nodes-onshape"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="section-header">
+          <h1 class="section-title">Onshape</h1>
+          <p class="section-desc">Cloud-native parametric modelling. Version-controlled assemblies built for collaborative iteration and rapid prototyping.</p>
+        </div>
+
+        <div class="year-group" data-year="2024">
+          <div class="year-label-col">
+            <div class="year-label"><span>2024</span></div>
+          </div>
+          <div class="project-grid">
+            <article class="card">
+              <div class="card-img-wrap">
+                <canvas aria-hidden="true"></canvas><img src="https://placehold.co/800x600/1A1A1A/9B9B8A?text=Project+Image" alt="Robot Arm" loading="lazy">
+              </div>
+              <p class="card-meta">Assembly · 2024</p>
+              <h2 class="card-title">3-DOF Robot Arm</h2>
+              <p class="card-body">Servo-driven arm designed in-browser across a 3-person team. Live branching used to develop gripper variants in parallel.</p>
+              <div class="card-tags"><span class="tag">Robotics</span><span class="tag">Collaborative</span><span class="tag">3D Print</span></div>
+            </article>
+          </div>
+        </div>
+
+        <div class="year-group" data-year="2023">
+          <div class="year-label-col">
+            <div class="year-label"><span>2023</span></div>
+          </div>
+          <div class="project-grid">
+            <article class="card">
+              <div class="card-img-wrap">
+                <canvas aria-hidden="true"></canvas><img src="https://placehold.co/800x600/1A1A1A/9B9B8A?text=Project+Image" alt="Chassis" loading="lazy">
+              </div>
+              <p class="card-meta">Part · 2023</p>
+              <h2 class="card-title">RC Chassis Frame</h2>
+              <p class="card-body">Lightweight 1/10-scale chassis. FeatureScript function auto-generates mounting hole patterns from a variable wheelbase.</p>
+              <div class="card-tags"><span class="tag">FeatureScript</span><span class="tag">Laser Cut</span></div>
+            </article>
+            <article class="card">
+              <div class="card-img-wrap">
+                <canvas aria-hidden="true"></canvas><img src="https://placehold.co/800x600/1A1A1A/9B9B8A?text=Project+Image" alt="Jig" loading="lazy">
+              </div>
+              <p class="card-meta">Tooling · 2023</p>
+              <h2 class="card-title">Assembly Jig</h2>
+              <p class="card-body">Modular jig for aligning and clamping sub-assemblies during hand-layup. Geometry derived from parent assembly.</p>
+              <div class="card-tags"><span class="tag">Tooling</span><span class="tag">Composites</span></div>
+            </article>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ BLENDER ═══════════════════════════════════════════ -->
+    <section id="blender" class="tab-panel" role="tabpanel">
+
+      <div class="timeline-bar" id="tl-blender">
+        <div class="container">
+          <div class="timeline-inner">
+            <div class="tl-track" id="tl-track-blender">
+              <div class="tl-nodes" id="tl-nodes-blender"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="section-header">
+          <h1 class="section-title">Blender</h1>
+          <p class="section-desc">3D visualisation, product renders, and simulation. Cycles-rendered scenes that communicate design intent beyond the engineering drawing.</p>
+        </div>
+
+        <div class="year-group" data-year="2024">
+          <div class="year-label-col">
+            <div class="year-label"><span>2024</span></div>
+          </div>
+          <div class="project-grid">
+            <article class="card">
+              <div class="card-img-wrap">
+                <canvas aria-hidden="true"></canvas><img src="https://placehold.co/800x600/1A1A1A/9B9B8A?text=Project+Image" alt="Product Render" loading="lazy">
+              </div>
+              <p class="card-meta">Render · 2024</p>
+              <h2 class="card-title">Product Visualisation</h2>
+              <p class="card-body">STEP import → Blender pipeline for client presentation renders. PBR materials and HDRI studio lighting.</p>
+              <div class="card-tags"><span class="tag">Cycles</span><span class="tag">PBR</span><span class="tag">STEP Import</span></div>
+            </article>
+            <article class="card">
+              <div class="card-img-wrap">
+                <canvas aria-hidden="true"></canvas><img src="https://placehold.co/800x600/1A1A1A/9B9B8A?text=Project+Image" alt="Fluid Sim" loading="lazy">
+              </div>
+              <p class="card-meta">Simulation · 2024</p>
+              <h2 class="card-title">Fluid Dynamics Study</h2>
+              <p class="card-body">Mantaflow fluid sim to visualise coolant flow through a manifold design before committing to tooling.</p>
+              <div class="card-tags"><span class="tag">Mantaflow</span><span class="tag">Simulation</span></div>
+            </article>
+          </div>
+        </div>
+
+        <div class="year-group" data-year="2023">
+          <div class="year-label-col">
+            <div class="year-label"><span>2023</span></div>
+          </div>
+          <div class="project-grid">
+            <article class="card">
+              <div class="card-img-wrap">
+                <canvas aria-hidden="true"></canvas><img src="https://placehold.co/800x600/1A1A1A/9B9B8A?text=Project+Image" alt="Exploded View" loading="lazy">
+              </div>
+              <p class="card-meta">Animation · 2023</p>
+              <h2 class="card-title">Exploded Assembly Animation</h2>
+              <p class="card-body">Rigged exploded-view showing assembly sequence for a multi-part mechanism. Exported as looping MP4 for documentation.</p>
+              <div class="card-tags"><span class="tag">Animation</span><span class="tag">Technical</span></div>
+            </article>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ ABOUT ══════════════════════════════════════════════ -->
+    <section id="about" class="tab-panel" role="tabpanel">
+      <div class="container">
+        <div class="about-grid">
+          <div class="about-img-wrap">
+            <canvas aria-hidden="true"></canvas><img src="https://placehold.co/600x800/1A1A1A/9B9B8A?text=Photo" alt="Portrait" loading="lazy">
+          </div>
+          <div class="about-text">
+            <h1 class="about-name">Your<br><span>Name</span></h1>
+            <div class="about-rule"></div>
+            <p class="about-bio">Mechanical engineering student and maker based in [City]. I design things that can actually be built — from tight-tolerance machined parts to 3D-printed mechanisms to rendered product concepts.</p>
+            <p class="about-bio">Currently studying [Degree] at [University]. Open to internships, collaborations, and interesting fabrication problems.</p>
+            <div class="about-skills">
+              <p class="about-skills-label">Tools &amp; Skills</p>
+              <div class="skills-list">
+                <span class="skill-chip highlight">SolidWorks</span>
+                <span class="skill-chip highlight">Onshape</span>
+                <span class="skill-chip highlight">Blender</span>
+                <span class="skill-chip">FDM / SLA Print</span>
+                <span class="skill-chip">Laser Cutting</span>
+                <span class="skill-chip">GD&amp;T</span>
+                <span class="skill-chip">FEA</span>
+                <span class="skill-chip">Sheet Metal</span>
+                <span class="skill-chip">Python</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <span class="footer-name">Your Name — Maker Portfolio</span>
+    <span class="footer-contact">
+      <a href="mailto:you@email.com">you@email.com</a>
+      &nbsp;·&nbsp;
+      <a href="https://github.com/yourusername" target="_blank">GitHub</a>
+      &nbsp;·&nbsp;
+      <a href="https://linkedin.com/in/yourprofile" target="_blank">LinkedIn</a>
+    </span>
+  </footer>
+
+  <script>
+  // ═══════════════════════════════════════════════════════════
+  // PENTONE CANVAS RENDERER
+  // ═══════════════════════════════════════════════════════════
+  //
+  // 5-stop brightness map (edit these to change the palette):
+  //   0  – 50  → black
+  //   51 – 110 → dark green
+  //  111 – 170 → red
+  //  171 – 220 → yellow
+  //  221 – 255 → white
+  //
+  // How it works:
+  //   1. An offscreen canvas reads each pixel of the loaded <img>.
+  //   2. Pixel brightness = 0.299R + 0.587G + 0.114B (luminance).
+  //   3. Brightness is mapped to the nearest palette stop, with
+  //      linear interpolation between stops for smooth gradients.
+  //   4. The result is drawn onto the visible <canvas> sibling.
+  //   5. The <img> sits on top at opacity:0; CSS fades it in on hover.
+  //
+  // CORS note: images must be same-origin (or served with
+  //   Access-Control-Allow-Origin: *) for Canvas to read pixel data.
+  //   GitHub Pages serves your own assets same-origin, so this works.
+  //   The placeholder images below are cross-origin and will render
+  //   as a solid fallback colour — replace with your own assets.
+
+  const PALETTE = [
+    { stop:   0, r:  26, g:  26, b:  26 },  // black     #1A1A1A
+    { stop:  80, r:  45, g: 106, b:  45 },  // green     #2D6A2D
+    { stop: 155, r: 208, g:  49, b:  14 },  // red       #D0310E
+    { stop: 210, r: 245, g: 200, b:   0 },  // yellow    #F5C800
+    { stop: 255, r: 242, g: 240, b: 235 },  // white     #F2F0EB
+  ];
+
+  function mapBrightness(lum) {
+    // Find surrounding stops and lerp between them
+    let lo = PALETTE[0], hi = PALETTE[PALETTE.length - 1];
+    for (let i = 0; i < PALETTE.length - 1; i++) {
+      if (lum >= PALETTE[i].stop && lum <= PALETTE[i + 1].stop) {
+        lo = PALETTE[i]; hi = PALETTE[i + 1]; break;
+      }
+    }
+    const range = hi.stop - lo.stop || 1;
+    const t = (lum - lo.stop) / range;
+    return [
+      Math.round(lo.r + (hi.r - lo.r) * t),
+      Math.round(lo.g + (hi.g - lo.g) * t),
+      Math.round(lo.b + (hi.b - lo.b) * t),
+    ];
+  }
+
+  function renderPentone(img, canvas) {
+    const W = img.naturalWidth  || img.width  || 800;
+    const H = img.naturalHeight || img.height || 600;
+
+    // Offscreen canvas to read pixels
+    const off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    const ctx = off.getContext('2d');
+
+    try {
+      ctx.drawImage(img, 0, 0, W, H);
+      const data = ctx.getImageData(0, 0, W, H);
+      const px   = data.data;
+
+      for (let i = 0; i < px.length; i += 4) {
+        const lum = 0.299 * px[i] + 0.587 * px[i+1] + 0.114 * px[i+2];
+        const [r, g, b] = mapBrightness(lum);
+        px[i] = r; px[i+1] = g; px[i+2] = b;
+        // alpha unchanged
+      }
+      ctx.putImageData(data, 0, 0);
+    } catch (e) {
+      // Cross-origin image — fill canvas with deepest palette colour
+      ctx.fillStyle = `rgb(${PALETTE[0].r},${PALETTE[0].g},${PALETTE[0].b})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // Size the visible canvas to match the img-wrap aspect ratio
+    canvas.width  = W;
+    canvas.height = H;
+    canvas.getContext('2d').drawImage(off, 0, 0);
+  }
+
+  function initPentone(wrap) {
+    const img    = wrap.querySelector('img');
+    const canvas = wrap.querySelector('canvas');
+    if (!img || !canvas) return;
+
+    const draw = () => renderPentone(img, canvas);
+
+    if (img.complete && img.naturalWidth) {
+      draw();
+    } else {
+      img.addEventListener('load', draw, { once: true });
+    }
+  }
+
+  // Initialise all image wrappers
+  document.querySelectorAll('.card-img-wrap, .about-img-wrap')
+    .forEach(wrap => initPentone(wrap));
+
+  // ═══════════════════════════════════════════════════════════
+  // TAB SWITCHING
+  // ═══════════════════════════════════════════════════════════
+  const tabBtns   = document.querySelectorAll('.tab-btn');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.panel;
+      tabBtns.forEach(t  => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+      tabPanels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected','true');
+      document.getElementById(target).classList.add('active');
+      window.scrollTo({ top: 0 });
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // TIMELINE — builds nodes from year-groups, tracks scroll
+  // ═══════════════════════════════════════════════════════════
+  const HEADER_H   = () => document.querySelector('header').offsetHeight;
+  const TIMELINE_H = 40;
+
+  function buildTimeline(panelId) {
+    const panel   = document.getElementById(panelId);
+    const nodesEl = document.getElementById(`tl-nodes-${panelId}`);
+    const trackEl = document.getElementById(`tl-track-${panelId}`);
+    if (!panel || !nodesEl || !trackEl) return;
+
+    const groups = Array.from(panel.querySelectorAll('.year-group'));
+    nodesEl.innerHTML = '';
+    if (groups.length === 0) return;
+
+    const years = groups.map(g => g.dataset.year);
+    const total = groups.length;
+
+    years.forEach((year, i) => {
+      const pct  = total === 1 ? 0.5 : i / (total - 1);
+      const node = document.createElement('div');
+      node.className = 'tl-node';
+      node.style.left = (pct * 100) + '%';
+      node.innerHTML  = `<div class="tl-dot"></div><span class="tl-node-label">${year}</span>`;
+      node.addEventListener('click', () => {
+        const top = groups[i].getBoundingClientRect().top + window.scrollY
+                  - HEADER_H() - TIMELINE_H - 12;
+        window.scrollTo({ top, behavior: 'smooth' });
+      });
+      nodesEl.appendChild(node);
+    });
+  }
+
+  function updateTimeline(panelId) {
+    const panel   = document.getElementById(panelId);
+    const trackEl = document.getElementById(`tl-track-${panelId}`);
+    const nodesEl = document.getElementById(`tl-nodes-${panelId}`);
+    if (!panel || !trackEl) return;
+
+    const groups  = Array.from(panel.querySelectorAll('.year-group'));
+    const nodeEls = Array.from(nodesEl.querySelectorAll('.tl-node'));
+    if (groups.length === 0) return;
+
+    const viewTop = window.scrollY + HEADER_H() + TIMELINE_H;
+
+    let currentIdx = 0;
+    groups.forEach((g, i) => {
+      if (viewTop >= g.getBoundingClientRect().top + window.scrollY) currentIdx = i;
+    });
+
+    const firstTop = groups[0].getBoundingClientRect().top + window.scrollY;
+    const lastBot  = groups[groups.length - 1].getBoundingClientRect().bottom + window.scrollY;
+    const progress = Math.min(1, Math.max(0, (viewTop - firstTop) / (lastBot - firstTop)));
+    trackEl.style.setProperty('--progress', progress);
+
+    nodeEls.forEach((n, i) => {
+      n.classList.remove('passed','current');
+      if (i < currentIdx)  n.classList.add('passed');
+      if (i === currentIdx) n.classList.add('current');
+    });
+  }
+
+  ['solidworks','onshape','blender'].forEach(id => buildTimeline(id));
+
+  window.addEventListener('scroll', () => {
+    const activePanel = document.querySelector('.tab-panel.active');
+    if (activePanel) updateTimeline(activePanel.id);
+  }, { passive: true });
+
+  updateTimeline('solidworks');
+  </script>
+
+</body>
+</html>
