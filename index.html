@@ -5,21 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Maker Portfolio</title>
 
-  <!--
-    ═══════════════════════════════════════════════════════════
-    FONT SETUP — ITC Avant Garde Gothic
-    ═══════════════════════════════════════════════════════════
-    Option A (Adobe Fonts — recommended):
-      1. fonts.adobe.com → search "ITC Avant Garde Gothic Pro" → Web Project
-      2. Replace the <link> below with the one Adobe gives you.
-         font-family is already set to 'itc-avant-garde-gothic-pro'.
-
-    Option B (self-host):
-      Place .woff2 files in assets/fonts/ and add @font-face rules.
-    ═══════════════════════════════════════════════════════════
-  -->
-  <link rel="stylesheet" href="https://use.typekit.net/XXXXXXX.css">
-
   <style>
     /* ─── TOKENS ────────────────────────────────────────────── */
     :root {
@@ -29,7 +14,7 @@
       --grey:    #9B9B8A;
       --rule:    1px solid #1A1A1A;
       --rule-lt: 1px solid rgba(26,26,26,0.15);
-      --font:    'itc-avant-garde-gothic-pro','Century Gothic','Avant Garde',Futura,sans-serif;
+      --font:    Futura,'Century Gothic',sans-serif;
       --grid:    1200px;
       --gap:     32px;
 
@@ -497,7 +482,7 @@
           <div class="project-grid">
             <article class="card">
               <div class="card-img-wrap">
-                <canvas aria-hidden="true"></canvas><img src="assets/images/Kenny Liu_The World of Blender_1.png" alt="Gearbox Assembly" loading="lazy">
+                <canvas aria-hidden="true"></canvas><img src="https://placehold.co/800x600/1A1A1A/9B9B8A?text=Project+Image" alt="Gearbox Assembly" loading="lazy">
               </div>
               <p class="card-meta">Assembly · 2024</p>
               <h2 class="card-title">Two-Stage Gearbox</h2>
@@ -738,11 +723,9 @@
   //   as a solid fallback colour — replace with your own assets.
 
   const PALETTE = [
-    { stop:   0, r:  26, g:  26, b:  26 },  // black     #1A1A1A
-    { stop:  80, r:  45, g: 106, b:  45 },  // green     #2D6A2D
-    { stop: 155, r: 208, g:  49, b:  14 },  // red       #D0310E
-    { stop: 210, r: 245, g: 200, b:   0 },  // yellow    #F5C800
-    { stop: 255, r: 242, g: 240, b: 235 },  // white     #F2F0EB
+    { stop:   0, r:  26, g:  26, b:  26 },  // black  #1A1A1A
+    { stop: 128, r: 208, g:  49, b:  14 },  // red    #D0310E
+    { stop: 255, r: 242, g: 240, b: 235 },  // white  #F2F0EB
   ];
 
   function mapBrightness(lum) {
