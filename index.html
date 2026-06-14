@@ -145,12 +145,15 @@
     }
     .tl-node {
       position: absolute;
-      transform: translateX(-50%);
+      top: 50%;
+      left: 0; /* overridden inline per-node via JS */
+      transform: translate(-50%, -50%);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 0;
       cursor: pointer;
+      width: max-content;
     }
     .tl-dot {
       width: 7px;
@@ -167,7 +170,10 @@
     }
     .tl-node-label {
       position: absolute;
-      top: 12px;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 4px;
       font-size: 9px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
@@ -482,7 +488,7 @@
           <div class="project-grid">
             <article class="card">
               <div class="card-img-wrap">
-                <canvas aria-hidden="true"></canvas><img src="assets/images/Kenny Liu_The World of Blender_1.png" alt="Gearbox Assembly" loading="lazy">
+                <canvas aria-hidden="true"></canvas><img src="https://placehold.co/800x600/1A1A1A/9B9B8A?text=Project+Image" alt="Gearbox Assembly" loading="lazy">
               </div>
               <p class="card-meta">Assembly · 2024</p>
               <h2 class="card-title">Two-Stage Gearbox</h2>
@@ -724,14 +730,14 @@
 
   const PALETTE = [
     { stop:   0, r:  26, g:  26, b:  26 },  // black  #1A1A1A
-    { stop: 128, r: 128, g:  37, b:  32 },  // red    #802520
+    { stop: 128, r: 208, g:  49, b:  14 },  // red    #D0310E
     { stop: 255, r: 242, g: 240, b: 235 },  // white  #F2F0EB
   ];
 
   function mapBrightness(lum) {
     // Hard thresholds — no interpolation, exactly 3 colours
-    if (lum < 110)  return [PALETTE[0].r, PALETTE[0].g, PALETTE[0].b]; // black
-    if (lum < 145) return [PALETTE[1].r, PALETTE[1].g, PALETTE[1].b]; // red
+    if (lum < 85)  return [PALETTE[0].r, PALETTE[0].g, PALETTE[0].b]; // black
+    if (lum < 170) return [PALETTE[1].r, PALETTE[1].g, PALETTE[1].b]; // red
                    return [PALETTE[2].r, PALETTE[2].g, PALETTE[2].b]; // white
   }
 
