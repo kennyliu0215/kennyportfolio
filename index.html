@@ -149,19 +149,25 @@
     .tab-btn.active .tab-logo img { opacity: 1; }
 
     .tab-label {
-      /* pulls left so the text moves directly into the circle,
-         overlapping the logo image itself; positioned above the
-         circle via z-index so it never gets covered */
       position: relative;
       z-index: 2;
-      margin-left: -12px;
+      margin-left: -6px;
       white-space: nowrap;
       font-family: var(--font-display);
       font-weight: 600;
+      letter-spacing: -0.04em;
       color: var(--white);
-      /* darker soft drop shadow keeps white text legible
-         even when overlapping the logo image */
-      text-shadow: 0 2px 6px rgba(0,0,0,0.75);
+      text-shadow:
+        0 1px 3px rgba(0,0,0,0.95),
+        0 3px 8px rgba(0,0,0,0.85),
+        0 6px 16px rgba(0,0,0,0.6);
+      transform: translateX(0);
+      transition: transform 0.25s ease;
+    }
+    /* slide label right so it clears the circle on hover */
+    .tab-btn:hover .tab-label,
+    .tab-btn.active .tab-label {
+      transform: translateX(8px);
     }
 
     /* ─── TIMELINE BAR (sticky, per tab) ─────────────────────── */
