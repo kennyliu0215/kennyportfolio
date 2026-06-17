@@ -239,16 +239,36 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: var(--gap);
-      border-bottom: var(--rule);
+      border-bottom: var(--rule-lt);
       padding: 40px 0 24px;
       align-items: end;
     }
     /* shift the title/description right so they clear the black
        year-bar, on any panel that actually has year-groups.
-       padding (not margin) keeps the border-bottom spanning the
-       full width, so it continues unbroken across the black bar */
+       The negative margin-left + matching padding-left mirrors
+       the exact technique .year-label-col uses for its own black
+       background — extending this element's border box (and thus
+       its border-bottom) into the same gutter space, so the line
+       naturally continues across the black bar without needing a
+       separately measured pseudo-element. */
     .tab-panel:has(.year-group) .section-header {
-      padding-left: calc(var(--h-year-col) + 24px);
+      margin-left: calc(-1 * var(--gap));
+      padding-left: calc(var(--gap) + var(--h-year-col) + 24px);
+      position: relative;
+    }
+    /* the border-bottom above is a dark line (--rule-lt), correct
+       for the cream background — but invisible once it crosses
+       into the black sidebar. This light-coloured strip sits at
+       the same height, clipped to exactly the black bar's width,
+       so the line stays visible across both backgrounds. */
+    .tab-panel:has(.year-group) .section-header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: calc(var(--gap) + var(--edge-offset, 0px));
+      height: 1px;
+      background: rgba(245,237,220,0.3);
     }
     .section-title {
       font-size: clamp(36px, 5vw, 64px);
@@ -292,7 +312,7 @@
       top: 0;
       bottom: 0;
       left: 0;
-      width: var(--edge-offset, 0px);
+      width: calc(var(--edge-offset, 0px) + 1px);
       transform: translateX(calc(-1 * var(--edge-offset, 0px)));
       background: var(--black);
       z-index: -1;
@@ -1064,6 +1084,7 @@
 
     document.querySelectorAll('.tab-panel.active').forEach(panel => {
       const cols = panel.querySelectorAll('.year-label-col');
+      const sectionHeader = panel.querySelector('.section-header');
 
       cols.forEach((col, i) => {
         const rect = col.getBoundingClientRect();
@@ -1076,6 +1097,14 @@
           const docTop = rect.top + window.scrollY;
           const gap = Math.max(0, docTop - headerHeight);
           col.style.setProperty('--top-extend', gap + 'px');
+
+          // The light line on section-header needs the same
+          // --edge-offset value as the black bar itself, so its
+          // width calc (gap + edge-offset) correctly spans the
+          // full black sidebar regardless of screen width
+          if (sectionHeader) {
+            sectionHeader.style.setProperty('--edge-offset', rect.left + 'px');
+          }
         }
       });
     });
