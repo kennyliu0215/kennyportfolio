@@ -239,35 +239,45 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: var(--gap);
-      border-bottom: var(--rule-lt);
       padding: 40px 0 24px;
       align-items: end;
-    }
-    /* shift the title/description right so they clear the black
-       year-bar, on any panel that actually has year-groups.
-       The negative margin-left + matching padding-left mirrors
-       the exact technique .year-label-col uses for its own black
-       background — extending this element's border box (and thus
-       its border-bottom) into the same gutter space, so the line
-       naturally continues across the black bar without needing a
-       separately measured pseudo-element. */
-    .tab-panel:has(.year-group) .section-header {
-      margin-left: calc(-1 * var(--gap));
-      padding-left: calc(var(--gap) + var(--h-year-col) + 24px);
       position: relative;
     }
-    /* the border-bottom above is a dark line (--rule-lt), correct
-       for the cream background — but invisible once it crosses
-       into the black sidebar. This light-coloured strip sits at
-       the same height, clipped to exactly the black bar's width,
-       so the line stays visible across both backgrounds. */
-    .tab-panel:has(.year-group) .section-header::after {
+    /* shift the title/description right so they clear the black
+       year-bar, on any panel that actually has year-groups */
+    .tab-panel:has(.year-group) .section-header {
+      padding-left: calc(var(--h-year-col) + 24px);
+    }
+    /*
+      FULL-BLEED LINE
+      ─────────────────────────────────────────────────────
+      A single reusable divider that genuinely spans from the
+      true viewport edge (across the entire black sidebar) to
+      the right edge of the container — replacing the previous
+      border-bottom approach, which only ever reached the
+      container's own 32px gutter and left most of the black
+      bar with no line crossing it on wider screens.
+
+      JS sets --edge-offset (the distance from this element's
+      left edge to the true viewport edge) on any element using
+      this class; the pseudo-element extends exactly that far.
+      Two colour layers are stacked: a dark one for the portion
+      crossing the cream background, and a light one (clipped to
+      the black bar's width) for the portion crossing the sidebar.
+    */
+    .full-bleed-line {
+      position: relative;
+      height: 1px;
+      background: var(--rule-lt);
+    }
+    .full-bleed-line::before {
       content: '';
       position: absolute;
-      bottom: -1px;
+      top: 0;
       left: 0;
-      width: calc(var(--gap) + var(--edge-offset, 0px));
       height: 1px;
+      width: calc(var(--gap) + var(--edge-offset, 0px));
+      transform: translateX(calc(-1 * (var(--gap) + var(--edge-offset, 0px))));
       background: rgba(245,237,220,0.3);
     }
     .section-title {
@@ -288,10 +298,8 @@
       display: grid;
       grid-template-columns: var(--h-year-col) 1fr;
       column-gap: 24px;
-      border-bottom: var(--rule-lt);
       position: relative;
     }
-    .year-group:last-child { border-bottom: none; }
 
     /* black bar fills the year column's own row height and
        extends left to the container edge (the natural gutter) */
@@ -664,6 +672,8 @@
           <p class="section-desc">Every project across SolidWorks, Onshape, and Blender — parts, assemblies, renders, and simulations, organised by year.</p>
         </div>
 
+        <div class="full-bleed-line"></div>
+
         <div class="year-group" data-year="2024">
           <div class="year-label-col">
             <div class="year-label"><span>2024</span></div>
@@ -721,6 +731,9 @@
             </article>
           </div>
         </div>
+
+        <div class="full-bleed-line"></div>
+
 
         <div class="year-group" data-year="2023">
           <div class="year-label-col">
@@ -781,6 +794,8 @@
             <p class="section-desc">Parametric part and assembly design. Each project built around constraint-driven geometry and design-for-manufacture intent.</p>
           </div>
 
+        <div class="full-bleed-line"></div>
+
           <div class="year-group" data-year="2024">
             <div class="year-label-col">
               <div class="year-label"><span>2024</span></div>
@@ -808,6 +823,9 @@
               </article>
             </div>
           </div>
+
+          <div class="full-bleed-line"></div>
+
 
           <div class="year-group" data-year="2023">
             <div class="year-label-col">
@@ -837,6 +855,8 @@
             <p class="section-desc">Cloud-native parametric modelling. Version-controlled assemblies built for collaborative iteration and rapid prototyping.</p>
           </div>
 
+        <div class="full-bleed-line"></div>
+
           <div class="year-group" data-year="2024">
             <div class="year-label-col">
               <div class="year-label"><span>2024</span></div>
@@ -854,6 +874,9 @@
               </article>
             </div>
           </div>
+
+          <div class="full-bleed-line"></div>
+
 
           <div class="year-group" data-year="2023">
             <div class="year-label-col">
@@ -893,6 +916,8 @@
             <p class="section-desc">3D visualisation, product renders, and simulation. Cycles-rendered scenes that communicate design intent beyond the engineering drawing.</p>
           </div>
 
+        <div class="full-bleed-line"></div>
+
           <div class="year-group" data-year="2024">
             <div class="year-label-col">
               <div class="year-label"><span>2024</span></div>
@@ -920,6 +945,9 @@
               </article>
             </div>
           </div>
+
+          <div class="full-bleed-line"></div>
+
 
           <div class="year-group" data-year="2023">
             <div class="year-label-col">
