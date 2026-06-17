@@ -26,7 +26,7 @@
       --grid:    1200px;
       --gap:     32px;
       --h-header: 88px;
-      --h-year-col: 48px;
+      --h-year-col: 56px;
     }
 
     /* ─── RESET ─────────────────────────────────────────────── */
@@ -135,7 +135,7 @@
       display: flex;
       align-items: center;
     }
-    .tab-btn.active { border-top-color: var(--gold); }
+    .tab-btn.active { border-top-color: var(--rust); }
 
     /* ─── LOGO CIRCLE ─────────────────────────────────────────── */
     .tab-logo {
@@ -226,28 +226,38 @@
       display: grid;
       grid-template-columns: var(--h-year-col) 1fr;
       border-bottom: var(--rule-lt);
-      padding: 40px 0;
+      position: relative;
     }
     .year-group:last-child { border-bottom: none; }
 
-    .year-label-col { position: relative; }
+    /* black bar fills the year column's own row height and
+       extends left to the container edge (the natural gutter) */
+    .year-label-col {
+      position: relative;
+      background: var(--black);
+      margin-left: calc(-1 * var(--gap));
+      padding-left: var(--gap);
+      padding-top: 40px;
+      padding-bottom: 40px;
+    }
     .year-label {
       position: sticky;
-      top: calc(var(--h-header) + 16px);
+      top: calc(var(--h-header) + 40px);
       display: flex;
       align-items: flex-start;
-      justify-content: center;
-      height: 80px;
+      justify-content: flex-start;
+      height: 100px;
+      padding-left: 8px;
     }
     .year-label span {
       display: block;
-      font-size: 10px;
+      font-size: 18px;
       font-weight: 700;
       letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: var(--gold);
+      color: var(--rust);
       writing-mode: vertical-rl;
-      transform: rotate(180deg);
+      transform: rotate(0deg);
     }
 
     /* ─── PROJECT GRID ───────────────────────────────────────── */
@@ -255,6 +265,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: var(--gap);
+      padding: 40px 0;
     }
 
     /* ─── CARD ───────────────────────────────────────────────── */
@@ -401,8 +412,8 @@
       line-height: 1;
       margin-bottom: 24px;
     }
-    .about-name span { color: var(--gold); }
-    .about-rule { width: 40px; height: 3px; background: var(--gold); margin-bottom: 24px; }
+    .about-name span { color: var(--rust); }
+    .about-rule { width: 40px; height: 3px; background: var(--rust); margin-bottom: 24px; }
     .about-bio {
       font-size: 15px;
       line-height: 1.75;
