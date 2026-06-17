@@ -144,11 +144,45 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
+      overflow: visible;
+      flex-shrink: 0;
+    }
+    /* the actual black circle is now an inner element so the
+       pulsating rings (below) can expand outside its bounds */
+    .tab-logo-inner {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
       overflow: hidden;
       background: var(--black);
-      flex-shrink: 0;
       border: 1.5px solid var(--rule-lt);
     }
+
+    /*
+      STATIC RINGS
+      ─────────────────────────────────────────────────────
+      Two rust rings sit at fixed offsets outside the circle's
+      edge, shown (no animation) when the tab is hovered or is
+      the currently active tab.
+    */
+    .tab-logo::before,
+    .tab-logo::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid var(--rust);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .tab-logo::before { inset: -3px; }
+    .tab-logo::after  { inset: -6px; }
+    .tab-btn:hover .tab-logo::before,
+    .tab-btn:hover .tab-logo::after,
+    .tab-btn.active .tab-logo::before,
+    .tab-btn.active .tab-logo::after {
+      opacity: 1;
+    }
+
     .tab-logo canvas {
       position: absolute;
       top: 50%; left: 50%;
@@ -176,13 +210,14 @@
       margin-left: -6px;
       white-space: nowrap;
       font-family: var(--font-display);
+      font-size: 12px;
       font-weight: 600;
       letter-spacing: -0.04em;
       color: var(--white);
       text-shadow:
-        0 1px 3px rgba(0,0,0,0.95),
-        0 3px 8px rgba(0,0,0,0.85),
-        0 6px 16px rgba(0,0,0,0.6);
+        0 1px 4px rgba(0,0,0,1),
+        0 4px 10px rgba(0,0,0,0.95),
+        0 8px 20px rgba(0,0,0,0.75);
       transform: translateX(0);
       transition: transform 0.25s ease;
     }
@@ -208,6 +243,13 @@
       padding: 40px 0 24px;
       align-items: end;
     }
+    /* shift the title/description right so they clear the black
+       year-bar, on any panel that actually has year-groups.
+       padding (not margin) keeps the border-bottom spanning the
+       full width, so it continues unbroken across the black bar */
+    .tab-panel:has(.year-group) .section-header {
+      padding-left: calc(var(--h-year-col) + 24px);
+    }
     .section-title {
       font-size: clamp(36px, 5vw, 64px);
       font-weight: 700;
@@ -225,6 +267,7 @@
     .year-group {
       display: grid;
       grid-template-columns: var(--h-year-col) 1fr;
+      column-gap: 24px;
       border-bottom: var(--rule-lt);
       position: relative;
     }
@@ -251,6 +294,21 @@
       left: 0;
       width: var(--edge-offset, 0px);
       transform: translateX(calc(-1 * var(--edge-offset, 0px)));
+      background: var(--black);
+      z-index: -1;
+    }
+    /* On the first year-group of each panel, JS measures the gap
+       between the sticky header's bottom edge and this column's
+       top, and stores it in --top-extend. This pseudo-element then
+       stretches the black background upward to close that gap, so
+       the bar appears to slide all the way up to the header. */
+    .year-label-col.first-year::after {
+      content: '';
+      position: absolute;
+      left: calc(-1 * var(--edge-offset, 0px));
+      right: 0;
+      top: calc(-1 * var(--top-extend, 0px));
+      height: var(--top-extend, 0px);
       background: var(--black);
       z-index: -1;
     }
@@ -286,7 +344,7 @@
     .card {
       display: flex;
       flex-direction: column;
-      border-top: var(--rule);
+      border-top: var(--rule-lt);
       padding-top: 16px;
       cursor: pointer;
     }
@@ -391,10 +449,33 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
+      overflow: visible;
+      flex-shrink: 0;
+    }
+    .about-tab-circle-inner {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
       overflow: hidden;
       background: var(--black);
-      flex-shrink: 0;
       border: 1.5px solid var(--rule-lt);
+    }
+    .about-tab-circle::before,
+    .about-tab-circle::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid var(--rust);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .about-tab-circle::before { inset: -3px; }
+    .about-tab-circle::after  { inset: -6px; }
+    .tab-btn:hover .about-tab-circle::before,
+    .tab-btn:hover .about-tab-circle::after,
+    .tab-btn.active .about-tab-circle::before,
+    .tab-btn.active .about-tab-circle::after {
+      opacity: 1;
     }
     .about-tab-circle canvas {
       position: absolute;
@@ -487,6 +568,7 @@
 </head>
 <body>
 
+
   <!-- ═══ SITE ════════════════════════════════════════════════ -->
   <header>
     <div class="header-inner">
@@ -496,38 +578,48 @@
     <nav role="tablist" aria-label="Portfolio sections">
       <button class="tab-btn active" role="tab" aria-selected="true" data-panel="projects">
         <span class="tab-logo">
-          <canvas aria-hidden="true"></canvas>
-          <!-- Replace with a small home/monogram icon -->
-          <img src="assets/images/logo-home.png" alt="" loading="lazy">
+          <span class="tab-logo-inner">
+            <canvas aria-hidden="true"></canvas>
+            <!-- Replace with a small home/monogram icon -->
+            <img src="assets/images/logo-home.png" alt="" loading="lazy">
+          </span>
         </span>
         <span class="tab-label">Projects</span>
       </button>
       <button class="tab-btn" role="tab" aria-selected="false" data-panel="solidworks">
         <span class="tab-logo">
-          <canvas aria-hidden="true"></canvas>
-          <img src="assets/images/logo-solidworks.png" alt="" loading="lazy">
+          <span class="tab-logo-inner">
+            <canvas aria-hidden="true"></canvas>
+            <img src="assets/images/logo-solidworks.png" alt="" loading="lazy">
+          </span>
         </span>
         <span class="tab-label">SolidWorks</span>
       </button>
       <button class="tab-btn" role="tab" aria-selected="false" data-panel="onshape">
         <span class="tab-logo">
-          <canvas aria-hidden="true"></canvas>
-          <img src="assets/images/logo-onshape.png" alt="" loading="lazy">
+          <span class="tab-logo-inner">
+            <canvas aria-hidden="true"></canvas>
+            <img src="assets/images/logo-onshape.png" alt="" loading="lazy">
+          </span>
         </span>
         <span class="tab-label">Onshape</span>
       </button>
       <button class="tab-btn" role="tab" aria-selected="false" data-panel="blender">
         <span class="tab-logo">
-          <canvas aria-hidden="true"></canvas>
-          <img src="assets/images/logo-blender.png" alt="" loading="lazy">
+          <span class="tab-logo-inner">
+            <canvas aria-hidden="true"></canvas>
+            <img src="assets/images/logo-blender.png" alt="" loading="lazy">
+          </span>
         </span>
         <span class="tab-label">Blender</span>
       </button>
       <button class="tab-btn" role="tab" aria-selected="false" data-panel="about">
         <span class="about-tab-circle">
-          <canvas aria-hidden="true"></canvas>
-          <!-- Replace with your own headshot -->
-          <img src="assets/images/headshot.jpg" alt="" loading="lazy">
+          <span class="about-tab-circle-inner">
+            <canvas aria-hidden="true"></canvas>
+            <!-- Replace with your own headshot -->
+            <img src="assets/images/headshot.jpg" alt="" loading="lazy">
+          </span>
         </span>
         <span class="tab-label" style="margin-left:-6px;">About</span>
       </button>
@@ -938,29 +1030,54 @@
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.dataset.panel;
+      if (btn.classList.contains('active')) return; // already on this tab
+
       tabBtns.forEach(t  => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
       tabPanels.forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       btn.setAttribute('aria-selected','true');
       document.getElementById(target).classList.add('active');
       window.scrollTo({ top: 0 });
-      // re-measure edge offsets once the new panel's layout settles
       requestAnimationFrame(updateYearEdgeOffsets);
     });
   });
 
   // ═══════════════════════════════════════════════════════════
-  // YEAR LABEL — full-bleed black bar to the true viewport edge
+  // YEAR LABEL — full-bleed black bar to the true viewport edge,
+  // plus extending the first bar up to meet the sticky header
   // ═══════════════════════════════════════════════════════════
   // .year-label-col sits inside a centered, max-width container,
   // so plain CSS can't reliably reach the real left edge of the
   // window. We measure each column's actual distance from x=0 and
   // store it in --edge-offset; the ::before pseudo-element then
   // extends exactly that far left, regardless of screen width.
+  //
+  // Separately, the FIRST year-group in each panel sits below a
+  // section header (and on the Projects tab, a timeline image too),
+  // so its top edge isn't flush with the header. We measure that
+  // gap and store it in --top-extend, which the .first-year::after
+  // pseudo-element uses to stretch the black background upward
+  // until it touches the sticky header — making the bar appear to
+  // slide all the way up regardless of how much content sits above it.
   function updateYearEdgeOffsets() {
-    document.querySelectorAll('.year-label-col').forEach(col => {
-      const rect = col.getBoundingClientRect();
-      col.style.setProperty('--edge-offset', rect.left + 'px');
+    const headerHeight = document.querySelector('header').offsetHeight;
+
+    document.querySelectorAll('.tab-panel.active').forEach(panel => {
+      const cols = panel.querySelectorAll('.year-label-col');
+
+      cols.forEach((col, i) => {
+        const rect = col.getBoundingClientRect();
+        col.style.setProperty('--edge-offset', rect.left + 'px');
+
+        col.classList.toggle('first-year', i === 0);
+        if (i === 0) {
+          // document-absolute Y position of the column's top edge,
+          // independent of current scroll position
+          const docTop = rect.top + window.scrollY;
+          const gap = Math.max(0, docTop - headerHeight);
+          col.style.setProperty('--top-extend', gap + 'px');
+        }
+      });
     });
   }
 
