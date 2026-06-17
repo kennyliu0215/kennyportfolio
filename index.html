@@ -240,6 +240,20 @@
       padding-top: 40px;
       padding-bottom: 40px;
     }
+    /* JS sets --edge-offset to the exact distance from this column's
+       left edge to the true viewport edge, so the black bar always
+       reaches x=0 regardless of screen width or container centering */
+    .year-label-col::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: var(--edge-offset, 0px);
+      transform: translateX(calc(-1 * var(--edge-offset, 0px)));
+      background: var(--black);
+      z-index: -1;
+    }
     .year-label {
       position: sticky;
       top: calc(var(--h-header) + 40px);
@@ -930,8 +944,28 @@
       btn.setAttribute('aria-selected','true');
       document.getElementById(target).classList.add('active');
       window.scrollTo({ top: 0 });
+      // re-measure edge offsets once the new panel's layout settles
+      requestAnimationFrame(updateYearEdgeOffsets);
     });
   });
+
+  // ═══════════════════════════════════════════════════════════
+  // YEAR LABEL — full-bleed black bar to the true viewport edge
+  // ═══════════════════════════════════════════════════════════
+  // .year-label-col sits inside a centered, max-width container,
+  // so plain CSS can't reliably reach the real left edge of the
+  // window. We measure each column's actual distance from x=0 and
+  // store it in --edge-offset; the ::before pseudo-element then
+  // extends exactly that far left, regardless of screen width.
+  function updateYearEdgeOffsets() {
+    document.querySelectorAll('.year-label-col').forEach(col => {
+      const rect = col.getBoundingClientRect();
+      col.style.setProperty('--edge-offset', rect.left + 'px');
+    });
+  }
+
+  updateYearEdgeOffsets();
+  window.addEventListener('resize', updateYearEdgeOffsets);
   </script>
 
 </body>
