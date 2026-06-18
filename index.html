@@ -43,43 +43,6 @@
     a { color: inherit; text-decoration: none; }
     img { display: block; width: 100%; }
 
-    /* ─── PROJECTS TAB (timeline image + full project list) ──── */
-    .timeline-img-wrap {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16 / 7;
-      background: var(--black);
-      overflow: hidden;
-      margin-bottom: 48px;
-    }
-    .timeline-img-wrap canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .timeline-img-wrap img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0;
-      transition: opacity .5s ease;
-    }
-    .timeline-img-wrap:hover img { opacity: 1; }
-    .timeline-img-label {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      font-size: 9px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: rgba(245,237,220,0.6);
-      z-index: 2;
-    }
-
     /* ─── SITE HEADER (sticky) ───────────────────────────────── */
     header {
       position: sticky;
@@ -225,9 +188,136 @@
     .tab-btn.active .tab-label { transform: translateX(8px); }
 
     /* ─── MAIN ───────────────────────────────────────────────── */
-    main { padding-bottom: 96px; }
+    /*
+      main is a fixed overlay filling the viewport below the sticky
+      header. Inside it, .tab-view and .detail-view are each their
+      OWN independent scroll container — like two separate pages
+      stacked side by side. Switching between them is purely a
+      horizontal transform; there's no shared page-level scroll
+      position to synchronize, so no jump/snap is possible. The
+      footer now lives inside .tab-view (see markup) so it scrolls
+      along with the project list, the same way a real second page
+      would have its own footer.
+    */
+    main {
+      position: fixed;
+      top: var(--h-header);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden; /* clips the slider during the slide animation */
+    }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
+
+    /*
+      PROJECT DETAIL SLIDE TRANSITION
+      ─────────────────────────────────────────────────────
+      .view-slider holds two full-width panes side by side: the
+      normal tab content (.tab-view) and the project detail page
+      (.detail-view). Sliding the slider left by 50% of its own
+      (200%) width reveals the detail view from the right while
+      the tab content moves off-screen to the left — and vice versa
+      for the back button.
+    */
+    .view-slider {
+      display: flex;
+      align-items: stretch;
+      width: 200%;
+      height: 100%;
+      transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    .view-slider.showing-detail {
+      transform: translateX(-50%);
+    }
+    .tab-view, .detail-view {
+      width: 50%;
+      height: 100%;
+      flex-shrink: 0;
+      min-width: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Back button */
+    .detail-back-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: var(--rule);
+      background: var(--white);
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--black);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      margin: 32px 0 0;
+    }
+    .detail-back-btn:hover {
+      background: var(--black);
+      color: var(--white);
+      border-color: var(--black);
+    }
+
+    /* Detail page content */
+    .detail-content {
+      padding-top: 24px;
+    }
+    .detail-meta {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--grey);
+      margin: 24px 0 8px;
+    }
+    .detail-title {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-bottom: 24px;
+    }
+    .detail-hero {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: var(--black);
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+    .detail-hero canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .detail-hero img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity .5s ease;
+    }
+    .detail-hero:hover img { opacity: 1; }
+    .detail-body {
+      font-size: 15px;
+      line-height: 1.8;
+      max-width: 70ch;
+      margin-bottom: 32px;
+    }
+    .detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 48px;
+    }
 
     /* ─── SECTION HEADER ─────────────────────────────────────── */
     .container {
@@ -247,38 +337,6 @@
        year-bar, on any panel that actually has year-groups */
     .tab-panel:has(.year-group) .section-header {
       padding-left: calc(var(--h-year-col) + 24px);
-    }
-    /*
-      FULL-BLEED LINE
-      ─────────────────────────────────────────────────────
-      A single reusable divider that genuinely spans from the
-      true viewport edge (across the entire black sidebar) to
-      the right edge of the container — replacing the previous
-      border-bottom approach, which only ever reached the
-      container's own 32px gutter and left most of the black
-      bar with no line crossing it on wider screens.
-
-      JS sets --edge-offset (the distance from this element's
-      left edge to the true viewport edge) on any element using
-      this class; the pseudo-element extends exactly that far.
-      Two colour layers are stacked: a dark one for the portion
-      crossing the cream background, and a light one (clipped to
-      the black bar's width) for the portion crossing the sidebar.
-    */
-    .full-bleed-line {
-      position: relative;
-      height: 1px;
-      background: var(--rule-lt);
-    }
-    .full-bleed-line::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 1px;
-      width: calc(var(--gap) + var(--edge-offset, 0px));
-      transform: translateX(calc(-1 * (var(--gap) + var(--edge-offset, 0px))));
-      background: rgba(245,237,220,0.3);
     }
     .section-title {
       font-size: clamp(36px, 5vw, 64px);
@@ -366,13 +424,41 @@
       grid-template-columns: repeat(3, 1fr);
       gap: var(--gap);
       padding: 40px 0;
+      position: relative;
+    }
+    /*
+      Rust separator line above the project grid, extended all the
+      way to the true left edge of the viewport. .project-grid sits
+      inside .year-group's second column, so a plain border-top
+      only spans this column's own width — JS measures this
+      element's own distance from x=0 and stores it in
+      --edge-offset, which this pseudo-element uses to stretch
+      leftward the rest of the way.
+    */
+    .project-grid::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--rust);
+    }
+    .project-grid::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: var(--edge-offset, 0px);
+      transform: translateX(calc(-1 * var(--edge-offset, 0px)));
+      background: var(--rust);
     }
 
     /* ─── CARD ───────────────────────────────────────────────── */
     .card {
       display: flex;
       flex-direction: column;
-      border-top: var(--rule-lt);
       padding-top: 16px;
       cursor: pointer;
     }
@@ -585,11 +671,10 @@
       .project-grid { grid-template-columns: 1fr; }
       .tab-btn { padding: 10px 14px 10px 0; font-size: 9px; }
       .year-group { grid-template-columns: 32px 1fr; }
-      .timeline-img-wrap { aspect-ratio: 4 / 3; }
     }
     @media (prefers-reduced-motion: reduce) {
       .card-img-wrap img, .about-img-wrap img,
-      .timeline-img-wrap img, .tab-logo img,
+      .tab-logo img,
       .about-tab-circle img, .tab-label { transition: none; }
     }
   </style>
@@ -655,31 +740,24 @@
   </header>
 
   <main>
+    <div class="view-slider" id="view-slider">
+    <div class="tab-view">
 
     <!-- ══ PROJECTS ═══════════════════════════════════════════ -->
     <section id="projects" class="tab-panel active" role="tabpanel">
       <div class="container">
-
-        <div class="timeline-img-wrap">
-          <canvas aria-hidden="true"></canvas>
-          <!-- Replace src with your own Gantt/timeline image -->
-          <img src="https://placehold.co/1600x700/181818/BA8530?text=Project+Timeline" alt="Project timeline" loading="eager">
-          <span class="timeline-img-label">Project Timeline</span>
-        </div>
 
         <div class="section-header">
           <h1 class="section-title">Projects</h1>
           <p class="section-desc">Every project across SolidWorks, Onshape, and Blender — parts, assemblies, renders, and simulations, organised by year.</p>
         </div>
 
-        <div class="full-bleed-line"></div>
-
         <div class="year-group" data-year="2024">
           <div class="year-label-col">
             <div class="year-label"><span>2024</span></div>
           </div>
           <div class="project-grid">
-            <article class="card">
+            <article class="card" data-project="gearbox">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Gearbox Assembly" loading="lazy">
@@ -689,7 +767,7 @@
               <p class="card-body">Fully constrained assembly with 14 unique parts. Designed to spec for a 5:1 reduction ratio, toleranced for FDM manufacture.</p>
               <div class="card-tags"><span class="tag">Sheet Metal</span><span class="tag">FEA</span><span class="tag">GD&amp;T</span></div>
             </article>
-            <article class="card">
+            <article class="card" data-project="weld-bracket">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Bracket" loading="lazy">
@@ -699,7 +777,7 @@
               <p class="card-body">Sheet metal bracket from flat pattern to finished weldment. Bend allowances calculated for 16ga mild steel.</p>
               <div class="card-tags"><span class="tag">Sheet Metal</span><span class="tag">Weldment</span></div>
             </article>
-            <article class="card">
+            <article class="card" data-project="robot-arm">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Robot Arm" loading="lazy">
@@ -709,7 +787,7 @@
               <p class="card-body">Servo-driven arm designed in-browser across a 3-person team. Live branching used to develop gripper variants in parallel.</p>
               <div class="card-tags"><span class="tag">Robotics</span><span class="tag">Collaborative</span><span class="tag">3D Print</span></div>
             </article>
-            <article class="card">
+            <article class="card" data-project="product-viz">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Product Render" loading="lazy">
@@ -719,7 +797,7 @@
               <p class="card-body">STEP import → Blender pipeline for client presentation renders. PBR materials and HDRI studio lighting.</p>
               <div class="card-tags"><span class="tag">Cycles</span><span class="tag">PBR</span><span class="tag">STEP Import</span></div>
             </article>
-            <article class="card">
+            <article class="card" data-project="fluid-sim">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Fluid Sim" loading="lazy">
@@ -732,15 +810,12 @@
           </div>
         </div>
 
-        <div class="full-bleed-line"></div>
-
-
         <div class="year-group" data-year="2023">
           <div class="year-label-col">
             <div class="year-label"><span>2023</span></div>
           </div>
           <div class="project-grid">
-            <article class="card">
+            <article class="card" data-project="enclosure">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Enclosure" loading="lazy">
@@ -750,7 +825,7 @@
               <p class="card-body">Snap-fit enclosure for custom PCB. Boss-and-rib structure, designed with 1° draft angles throughout.</p>
               <div class="card-tags"><span class="tag">Injection Mould</span><span class="tag">Snap-Fit</span></div>
             </article>
-            <article class="card">
+            <article class="card" data-project="chassis">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Chassis" loading="lazy">
@@ -760,7 +835,7 @@
               <p class="card-body">Lightweight 1/10-scale chassis. FeatureScript function auto-generates mounting hole patterns from a variable wheelbase.</p>
               <div class="card-tags"><span class="tag">FeatureScript</span><span class="tag">Laser Cut</span></div>
             </article>
-            <article class="card">
+            <article class="card" data-project="jig">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Jig" loading="lazy">
@@ -770,7 +845,7 @@
               <p class="card-body">Modular jig for aligning and clamping sub-assemblies during hand-layup. Geometry derived from parent assembly.</p>
               <div class="card-tags"><span class="tag">Tooling</span><span class="tag">Composites</span></div>
             </article>
-            <article class="card">
+            <article class="card" data-project="exploded-anim">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Exploded View" loading="lazy">
@@ -794,14 +869,12 @@
             <p class="section-desc">Parametric part and assembly design. Each project built around constraint-driven geometry and design-for-manufacture intent.</p>
           </div>
 
-        <div class="full-bleed-line"></div>
-
           <div class="year-group" data-year="2024">
             <div class="year-label-col">
               <div class="year-label"><span>2024</span></div>
             </div>
-            <div class="project-grid">
-              <article class="card">
+          <div class="project-grid">
+              <article class="card" data-project="gearbox">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Gearbox Assembly" loading="lazy">
@@ -811,7 +884,7 @@
                 <p class="card-body">Fully constrained assembly with 14 unique parts. Designed to spec for a 5:1 reduction ratio, toleranced for FDM manufacture.</p>
                 <div class="card-tags"><span class="tag">Sheet Metal</span><span class="tag">FEA</span><span class="tag">GD&amp;T</span></div>
               </article>
-              <article class="card">
+              <article class="card" data-project="weld-bracket">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Bracket" loading="lazy">
@@ -824,15 +897,12 @@
             </div>
           </div>
 
-          <div class="full-bleed-line"></div>
-
-
           <div class="year-group" data-year="2023">
             <div class="year-label-col">
               <div class="year-label"><span>2023</span></div>
             </div>
-            <div class="project-grid">
-              <article class="card">
+          <div class="project-grid">
+              <article class="card" data-project="enclosure">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Enclosure" loading="lazy">
@@ -855,14 +925,12 @@
             <p class="section-desc">Cloud-native parametric modelling. Version-controlled assemblies built for collaborative iteration and rapid prototyping.</p>
           </div>
 
-        <div class="full-bleed-line"></div>
-
           <div class="year-group" data-year="2024">
             <div class="year-label-col">
               <div class="year-label"><span>2024</span></div>
             </div>
-            <div class="project-grid">
-              <article class="card">
+          <div class="project-grid">
+              <article class="card" data-project="robot-arm">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Robot Arm" loading="lazy">
@@ -875,15 +943,12 @@
             </div>
           </div>
 
-          <div class="full-bleed-line"></div>
-
-
           <div class="year-group" data-year="2023">
             <div class="year-label-col">
               <div class="year-label"><span>2023</span></div>
             </div>
-            <div class="project-grid">
-              <article class="card">
+          <div class="project-grid">
+              <article class="card" data-project="chassis">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Chassis" loading="lazy">
@@ -893,7 +958,7 @@
                 <p class="card-body">Lightweight 1/10-scale chassis. FeatureScript function auto-generates mounting hole patterns from a variable wheelbase.</p>
                 <div class="card-tags"><span class="tag">FeatureScript</span><span class="tag">Laser Cut</span></div>
               </article>
-              <article class="card">
+              <article class="card" data-project="jig">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Jig" loading="lazy">
@@ -916,14 +981,12 @@
             <p class="section-desc">3D visualisation, product renders, and simulation. Cycles-rendered scenes that communicate design intent beyond the engineering drawing.</p>
           </div>
 
-        <div class="full-bleed-line"></div>
-
           <div class="year-group" data-year="2024">
             <div class="year-label-col">
               <div class="year-label"><span>2024</span></div>
             </div>
-            <div class="project-grid">
-              <article class="card">
+          <div class="project-grid">
+              <article class="card" data-project="product-viz">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Product Render" loading="lazy">
@@ -933,7 +996,7 @@
                 <p class="card-body">STEP import → Blender pipeline for client presentation renders. PBR materials and HDRI studio lighting.</p>
                 <div class="card-tags"><span class="tag">Cycles</span><span class="tag">PBR</span><span class="tag">STEP Import</span></div>
               </article>
-              <article class="card">
+              <article class="card" data-project="fluid-sim">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Fluid Sim" loading="lazy">
@@ -946,15 +1009,12 @@
             </div>
           </div>
 
-          <div class="full-bleed-line"></div>
-
-
           <div class="year-group" data-year="2023">
             <div class="year-label-col">
               <div class="year-label"><span>2023</span></div>
             </div>
-            <div class="project-grid">
-              <article class="card">
+          <div class="project-grid">
+              <article class="card" data-project="exploded-anim">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Exploded View" loading="lazy">
@@ -1001,18 +1061,31 @@
         </div>
       </section>
 
-    </main>
+      <footer>
+        <span class="footer-name">Your Name — Maker Portfolio</span>
+        <span class="footer-contact">
+          <a href="mailto:you@email.com">you@email.com</a>
+          &nbsp;·&nbsp;
+          <a href="https://github.com/yourusername" target="_blank">GitHub</a>
+          &nbsp;·&nbsp;
+          <a href="https://linkedin.com/in/yourprofile" target="_blank">LinkedIn</a>
+        </span>
+      </footer>
 
-    <footer>
-      <span class="footer-name">Your Name — Maker Portfolio</span>
-      <span class="footer-contact">
-        <a href="mailto:you@email.com">you@email.com</a>
-        &nbsp;·&nbsp;
-        <a href="https://github.com/yourusername" target="_blank">GitHub</a>
-        &nbsp;·&nbsp;
-        <a href="https://linkedin.com/in/yourprofile" target="_blank">LinkedIn</a>
-      </span>
-    </footer>
+    </div><!-- /.tab-view -->
+
+    <!-- ══ PROJECT DETAIL (populated dynamically by JS) ════════ -->
+    <div class="detail-view" id="detail-view">
+      <div class="container">
+        <button class="detail-back-btn" id="detail-back-btn" aria-label="Back to projects">‹</button>
+        <div class="detail-content" id="detail-content">
+          <!-- JS fills this in with the selected project's content -->
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /.view-slider -->
+  </main>
 
   <script>
   // ═══════════════════════════════════════════════════════════
@@ -1066,7 +1139,7 @@
   }
 
   document.querySelectorAll(
-    '.card-img-wrap, .about-img-wrap, .tab-logo, .about-tab-circle, .timeline-img-wrap'
+    '.card-img-wrap, .about-img-wrap, .tab-logo, .about-tab-circle'
   ).forEach(wrap => initPentone(wrap));
 
   // ═══════════════════════════════════════════════════════════
@@ -1085,10 +1158,131 @@
       btn.classList.add('active');
       btn.setAttribute('aria-selected','true');
       document.getElementById(target).classList.add('active');
-      window.scrollTo({ top: 0 });
+      document.getElementById('view-slider').classList.remove('showing-detail');
+      document.querySelector('.tab-view').scrollTop = 0;
       requestAnimationFrame(updateYearEdgeOffsets);
     });
   });
+
+  // ═══════════════════════════════════════════════════════════
+  // PROJECT DETAIL PAGES
+  // ═══════════════════════════════════════════════════════════
+  // Each project's full detail content lives here. Add a new entry
+  // to add a new project's detail page — the id must match the
+  // data-project attribute on that project's card(s) in the markup.
+  const PROJECTS = {
+    'gearbox': {
+      meta: 'SolidWorks · Assembly · 2024',
+      title: 'Two-Stage Gearbox',
+      image: 'https://placehold.co/1200x675/181818/BA8530?text=Two-Stage+Gearbox',
+      body: 'Fully constrained assembly with 14 unique parts. Designed to spec for a 5:1 reduction ratio, toleranced for FDM manufacture. Every mating face was dimensioned with stack-up tolerance in mind, and the gear train was validated against the target reduction ratio before any part was printed. Final assembly tested under load to confirm backlash stayed within spec.',
+      tags: ['Sheet Metal', 'FEA', 'GD&T'],
+    },
+    'weld-bracket': {
+      meta: 'SolidWorks · Sheet Metal · 2024',
+      title: 'Weld-Form Bracket',
+      image: 'https://placehold.co/1200x675/181818/BA8530?text=Weld-Form+Bracket',
+      body: 'Sheet metal bracket from flat pattern to finished weldment. Bend allowances calculated for 16ga mild steel, with K-factor verified against the shop\'s press brake before the flat pattern was finalized. Weld callouts and symbols followed AWS conventions throughout the drawing package.',
+      tags: ['Sheet Metal', 'Weldment'],
+    },
+    'robot-arm': {
+      meta: 'Onshape · Assembly · 2024',
+      title: '3-DOF Robot Arm',
+      image: 'https://placehold.co/1200x675/181818/BA8530?text=3-DOF+Robot+Arm',
+      body: 'Servo-driven arm designed in-browser across a 3-person team. Live branching used to develop gripper variants in parallel, then merged once the best-performing design was chosen through quick print-and-test iterations. Each joint was modeled with realistic servo torque limits in mind to keep the arm within its actuator budget.',
+      tags: ['Robotics', 'Collaborative', '3D Print'],
+    },
+    'product-viz': {
+      meta: 'Blender · Render · 2024',
+      title: 'Product Visualisation',
+      image: 'https://placehold.co/1200x675/181818/BA8530?text=Product+Visualisation',
+      body: 'STEP import → Blender pipeline for client presentation renders. PBR materials and HDRI studio lighting were used to give the model a photoreal finish, matching the look of a professional product photography setup without needing a physical prototype.',
+      tags: ['Cycles', 'PBR', 'STEP Import'],
+    },
+    'fluid-sim': {
+      meta: 'Blender · Simulation · 2024',
+      title: 'Fluid Dynamics Study',
+      image: 'https://placehold.co/1200x675/181818/BA8530?text=Fluid+Dynamics+Study',
+      body: 'Mantaflow fluid sim to visualise coolant flow through a manifold design before committing to tooling. The simulation helped catch a recirculation zone near one of the inlet ports, which was redesigned before the part was sent out for machining.',
+      tags: ['Mantaflow', 'Simulation'],
+    },
+    'enclosure': {
+      meta: 'SolidWorks · Part · 2023',
+      title: 'Electronics Enclosure',
+      image: 'https://placehold.co/1200x675/181818/BA8530?text=Electronics+Enclosure',
+      body: 'Snap-fit enclosure for custom PCB. Boss-and-rib structure, designed with 1° draft angles throughout to keep the part moldable. Snap-fit tabs were prototyped separately on a test print to dial in deflection before finalizing the full enclosure geometry.',
+      tags: ['Injection Mould', 'Snap-Fit'],
+    },
+    'chassis': {
+      meta: 'Onshape · Part · 2023',
+      title: 'RC Chassis Frame',
+      image: 'https://placehold.co/1200x675/181818/BA8530?text=RC+Chassis+Frame',
+      body: 'Lightweight 1/10-scale chassis. FeatureScript function auto-generates mounting hole patterns from a variable wheelbase, so the same base design could be reused across several different motor and battery configurations without remodeling from scratch.',
+      tags: ['FeatureScript', 'Laser Cut'],
+    },
+    'jig': {
+      meta: 'Onshape · Tooling · 2023',
+      title: 'Assembly Jig',
+      image: 'https://placehold.co/1200x675/181818/BA8530?text=Assembly+Jig',
+      body: 'Modular jig for aligning and clamping sub-assemblies during hand-layup. Geometry derived from parent assembly, so any future revision to the part automatically propagates to the jig\'s locating features — keeping the tooling in sync with the design.',
+      tags: ['Tooling', 'Composites'],
+    },
+    'exploded-anim': {
+      meta: 'Blender · Animation · 2023',
+      title: 'Exploded Assembly Animation',
+      image: 'https://placehold.co/1200x675/181818/BA8530?text=Exploded+Assembly+Animation',
+      body: 'Rigged exploded-view showing assembly sequence for a multi-part mechanism. Exported as a looping MP4 for documentation, giving viewers an intuitive sense of build order without needing to read a written assembly procedure.',
+      tags: ['Animation', 'Technical'],
+    },
+  };
+
+  const viewSlider   = document.getElementById('view-slider');
+  const detailView   = document.getElementById('detail-view');
+  const detailContent = document.getElementById('detail-content');
+  const detailBackBtn = document.getElementById('detail-back-btn');
+
+  function openProjectDetail(id) {
+    const project = PROJECTS[id];
+    if (!project) return;
+
+    detailContent.innerHTML = `
+      <p class="detail-meta">${project.meta}</p>
+      <h1 class="detail-title">${project.title}</h1>
+      <div class="detail-hero">
+        <canvas aria-hidden="true"></canvas>
+        <img src="${project.image}" alt="${project.title}" loading="eager">
+      </div>
+      <p class="detail-body">${project.body}</p>
+      <div class="detail-tags">
+        ${project.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+      </div>
+    `;
+
+    // render the pentone canvas for the newly-inserted hero image
+    initPentone(detailContent.querySelector('.detail-hero'));
+
+    // .detail-view is its own independent scroll container, so it
+    // always starts at its own top with zero effect on .tab-view's
+    // scroll position — exactly like opening a separate page.
+    detailView.scrollTop = 0;
+
+    viewSlider.classList.add('showing-detail');
+  }
+
+  function closeProjectDetail() {
+    viewSlider.classList.remove('showing-detail');
+    // .tab-view kept its own scroll position the whole time it was
+    // sitting off-screen, so no restoration step is needed here.
+  }
+
+  // Clicking any card (in any tab) opens that project's detail page
+  document.querySelectorAll('.card[data-project]').forEach(card => {
+    card.addEventListener('click', () => {
+      openProjectDetail(card.dataset.project);
+    });
+  });
+
+  detailBackBtn.addEventListener('click', closeProjectDetail);
 
   // ═══════════════════════════════════════════════════════════
   // YEAR LABEL — full-bleed black bar to the true viewport edge,
@@ -1112,7 +1306,7 @@
 
     document.querySelectorAll('.tab-panel.active').forEach(panel => {
       const cols = panel.querySelectorAll('.year-label-col');
-      const sectionHeader = panel.querySelector('.section-header');
+      const grids = panel.querySelectorAll('.project-grid');
 
       cols.forEach((col, i) => {
         const rect = col.getBoundingClientRect();
@@ -1120,20 +1314,19 @@
 
         col.classList.toggle('first-year', i === 0);
         if (i === 0) {
-          // document-absolute Y position of the column's top edge,
-          // independent of current scroll position
-          const docTop = rect.top + window.scrollY;
-          const gap = Math.max(0, docTop - headerHeight);
+          // rect.top is already viewport-relative regardless of
+          // which ancestor scrolls, so it's usable directly here
+          const gap = Math.max(0, rect.top - headerHeight);
           col.style.setProperty('--top-extend', gap + 'px');
-
-          // The light line on section-header needs the same
-          // --edge-offset value as the black bar itself, so its
-          // width calc (gap + edge-offset) correctly spans the
-          // full black sidebar regardless of screen width
-          if (sectionHeader) {
-            sectionHeader.style.setProperty('--edge-offset', rect.left + 'px');
-          }
         }
+      });
+
+      // Rust line above each .project-grid also needs to reach the
+      // true viewport edge — measured independently since it sits
+      // in the grid's second column, a sibling of .year-label-col
+      grids.forEach(grid => {
+        const gridRect = grid.getBoundingClientRect();
+        grid.style.setProperty('--edge-offset', gridRect.left + 'px');
       });
     });
   }
