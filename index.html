@@ -1153,14 +1153,34 @@
       const target = btn.dataset.panel;
       if (btn.classList.contains('active')) return; // already on this tab
 
+      const slider = document.getElementById('view-slider');
+      const wasShowingDetail = slider.classList.contains('showing-detail');
+
       tabBtns.forEach(t  => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
       tabPanels.forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       btn.setAttribute('aria-selected','true');
       document.getElementById(target).classList.add('active');
-      document.getElementById('view-slider').classList.remove('showing-detail');
+      slider.classList.remove('showing-detail');
       document.querySelector('.tab-view').scrollTop = 0;
-      requestAnimationFrame(updateYearEdgeOffsets);
+
+      if (wasShowingDetail) {
+        // .tab-view was sitting off-screen behind a CSS transform
+        // mid-slide; getBoundingClientRect() on its contents can
+        // report stale/incorrect geometry until that 0.45s slide
+        // transition has actually finished. Wait for it explicitly
+        // rather than guessing with requestAnimationFrame timing.
+        slider.addEventListener('transitionend', function handler(e) {
+          if (e.propertyName !== 'transform') return;
+          slider.removeEventListener('transitionend', handler);
+          updateYearEdgeOffsets();
+        });
+      } else {
+        // No transition was running (a plain tab-to-tab switch) —
+        // double-RAF is enough to guarantee layout has settled
+        // after the display:block change.
+        requestAnimationFrame(() => requestAnimationFrame(updateYearEdgeOffsets));
+      }
     });
   });
 
