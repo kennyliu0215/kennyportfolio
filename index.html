@@ -267,13 +267,6 @@
     .detail-content {
       padding-top: 24px;
     }
-    .detail-meta {
-      font-size: 10px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--grey);
-      margin: 24px 0 8px;
-    }
     .detail-title {
       font-size: clamp(36px, 5vw, 56px);
       font-weight: 700;
@@ -311,12 +304,6 @@
       line-height: 1.8;
       max-width: 70ch;
       margin-bottom: 32px;
-    }
-    .detail-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 48px;
     }
 
     /* ─── SECTION HEADER ─────────────────────────────────────── */
@@ -368,6 +355,14 @@
       padding-left: var(--gap);
       padding-top: 40px;
       padding-bottom: 40px;
+      /* forces this element onto its own GPU compositor layer so
+         its black background is pre-rendered rather than repainted
+         on every scroll frame — prevents a brief flash of the page
+         background showing through at the column's edges during
+         fast scrolling, especially scrolling upward */
+      transform: translateZ(0);
+      will-change: transform;
+      backface-visibility: hidden;
     }
     /* JS sets --edge-offset to the exact distance from this column's
        left edge to the true viewport edge, so the black bar always
@@ -382,6 +377,7 @@
       transform: translateX(calc(-1 * var(--edge-offset, 0px)));
       background: var(--black);
       z-index: -1;
+      will-change: transform;
     }
     /* On the first year-group of each panel, JS measures the gap
        between the sticky header's bottom edge and this column's
@@ -488,13 +484,6 @@
     }
     .card:hover .card-img-wrap img { opacity: 1; }
 
-    .card-meta {
-      font-size: 10px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--grey);
-      margin-bottom: 6px;
-    }
     .card-title {
       font-size: 15px;
       font-weight: 700;
@@ -506,20 +495,6 @@
       line-height: 1.6;
       color: var(--grey);
       flex: 1;
-    }
-    .card-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 14px;
-    }
-    .tag {
-      font-size: 9px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      padding: 3px 8px;
-      border: 1px solid var(--grey);
-      color: var(--grey);
     }
 
     /* ─── ABOUT ──────────────────────────────────────────────── */
@@ -737,7 +712,7 @@
             <img src="assets/images/headshot.jpg" alt="" loading="lazy">
           </span>
         </span>
-        <span class="tab-label" style="margin-left:-6px;">About</span>
+        <span class="tab-label" style="margin-left:-6px;">About Me</span>
       </button>
     </nav>
   </header>
@@ -765,50 +740,40 @@
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Gearbox Assembly" loading="lazy">
               </div>
-              <p class="card-meta">SolidWorks · Assembly · 2024</p>
               <h2 class="card-title">Two-Stage Gearbox</h2>
               <p class="card-body">Fully constrained assembly with 14 unique parts. Designed to spec for a 5:1 reduction ratio, toleranced for FDM manufacture.</p>
-              <div class="card-tags"><span class="tag">Sheet Metal</span><span class="tag">FEA</span><span class="tag">GD&amp;T</span></div>
             </article>
             <article class="card" data-project="weld-bracket">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Bracket" loading="lazy">
               </div>
-              <p class="card-meta">SolidWorks · Sheet Metal · 2024</p>
               <h2 class="card-title">Weld-Form Bracket</h2>
               <p class="card-body">Sheet metal bracket from flat pattern to finished weldment. Bend allowances calculated for 16ga mild steel.</p>
-              <div class="card-tags"><span class="tag">Sheet Metal</span><span class="tag">Weldment</span></div>
             </article>
             <article class="card" data-project="robot-arm">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Robot Arm" loading="lazy">
               </div>
-              <p class="card-meta">Onshape · Assembly · 2024</p>
               <h2 class="card-title">3-DOF Robot Arm</h2>
               <p class="card-body">Servo-driven arm designed in-browser across a 3-person team. Live branching used to develop gripper variants in parallel.</p>
-              <div class="card-tags"><span class="tag">Robotics</span><span class="tag">Collaborative</span><span class="tag">3D Print</span></div>
             </article>
             <article class="card" data-project="product-viz">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Product Render" loading="lazy">
               </div>
-              <p class="card-meta">Blender · Render · 2024</p>
               <h2 class="card-title">Product Visualisation</h2>
               <p class="card-body">STEP import → Blender pipeline for client presentation renders. PBR materials and HDRI studio lighting.</p>
-              <div class="card-tags"><span class="tag">Cycles</span><span class="tag">PBR</span><span class="tag">STEP Import</span></div>
             </article>
             <article class="card" data-project="fluid-sim">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Fluid Sim" loading="lazy">
               </div>
-              <p class="card-meta">Blender · Simulation · 2024</p>
               <h2 class="card-title">Fluid Dynamics Study</h2>
               <p class="card-body">Mantaflow fluid sim to visualise coolant flow through a manifold design before committing to tooling.</p>
-              <div class="card-tags"><span class="tag">Mantaflow</span><span class="tag">Simulation</span></div>
             </article>
           </div>
         </div>
@@ -823,40 +788,32 @@
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Enclosure" loading="lazy">
               </div>
-              <p class="card-meta">SolidWorks · Part · 2023</p>
               <h2 class="card-title">Electronics Enclosure</h2>
               <p class="card-body">Snap-fit enclosure for custom PCB. Boss-and-rib structure, designed with 1° draft angles throughout.</p>
-              <div class="card-tags"><span class="tag">Injection Mould</span><span class="tag">Snap-Fit</span></div>
             </article>
             <article class="card" data-project="chassis">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Chassis" loading="lazy">
               </div>
-              <p class="card-meta">Onshape · Part · 2023</p>
               <h2 class="card-title">RC Chassis Frame</h2>
               <p class="card-body">Lightweight 1/10-scale chassis. FeatureScript function auto-generates mounting hole patterns from a variable wheelbase.</p>
-              <div class="card-tags"><span class="tag">FeatureScript</span><span class="tag">Laser Cut</span></div>
             </article>
             <article class="card" data-project="jig">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Jig" loading="lazy">
               </div>
-              <p class="card-meta">Onshape · Tooling · 2023</p>
               <h2 class="card-title">Assembly Jig</h2>
               <p class="card-body">Modular jig for aligning and clamping sub-assemblies during hand-layup. Geometry derived from parent assembly.</p>
-              <div class="card-tags"><span class="tag">Tooling</span><span class="tag">Composites</span></div>
             </article>
             <article class="card" data-project="exploded-anim">
               <div class="card-img-wrap">
                 <canvas aria-hidden="true"></canvas>
                 <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Exploded View" loading="lazy">
               </div>
-              <p class="card-meta">Blender · Animation · 2023</p>
               <h2 class="card-title">Exploded Assembly Animation</h2>
               <p class="card-body">Rigged exploded-view showing assembly sequence for a multi-part mechanism. Exported as looping MP4 for documentation.</p>
-              <div class="card-tags"><span class="tag">Animation</span><span class="tag">Technical</span></div>
             </article>
           </div>
         </div>
@@ -882,20 +839,16 @@
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Gearbox Assembly" loading="lazy">
                 </div>
-                <p class="card-meta">Assembly · 2024</p>
                 <h2 class="card-title">Two-Stage Gearbox</h2>
                 <p class="card-body">Fully constrained assembly with 14 unique parts. Designed to spec for a 5:1 reduction ratio, toleranced for FDM manufacture.</p>
-                <div class="card-tags"><span class="tag">Sheet Metal</span><span class="tag">FEA</span><span class="tag">GD&amp;T</span></div>
               </article>
               <article class="card" data-project="weld-bracket">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Bracket" loading="lazy">
                 </div>
-                <p class="card-meta">Sheet Metal · 2024</p>
                 <h2 class="card-title">Weld-Form Bracket</h2>
                 <p class="card-body">Sheet metal bracket from flat pattern to finished weldment. Bend allowances calculated for 16ga mild steel.</p>
-                <div class="card-tags"><span class="tag">Sheet Metal</span><span class="tag">Weldment</span></div>
               </article>
             </div>
           </div>
@@ -910,10 +863,8 @@
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Enclosure" loading="lazy">
                 </div>
-                <p class="card-meta">Part · 2023</p>
                 <h2 class="card-title">Electronics Enclosure</h2>
                 <p class="card-body">Snap-fit enclosure for custom PCB. Boss-and-rib structure, designed with 1° draft angles throughout.</p>
-                <div class="card-tags"><span class="tag">Injection Mould</span><span class="tag">Snap-Fit</span></div>
               </article>
             </div>
           </div>
@@ -938,10 +889,8 @@
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Robot Arm" loading="lazy">
                 </div>
-                <p class="card-meta">Assembly · 2024</p>
                 <h2 class="card-title">3-DOF Robot Arm</h2>
                 <p class="card-body">Servo-driven arm designed in-browser across a 3-person team. Live branching used to develop gripper variants in parallel.</p>
-                <div class="card-tags"><span class="tag">Robotics</span><span class="tag">Collaborative</span><span class="tag">3D Print</span></div>
               </article>
             </div>
           </div>
@@ -956,20 +905,16 @@
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Chassis" loading="lazy">
                 </div>
-                <p class="card-meta">Part · 2023</p>
                 <h2 class="card-title">RC Chassis Frame</h2>
                 <p class="card-body">Lightweight 1/10-scale chassis. FeatureScript function auto-generates mounting hole patterns from a variable wheelbase.</p>
-                <div class="card-tags"><span class="tag">FeatureScript</span><span class="tag">Laser Cut</span></div>
               </article>
               <article class="card" data-project="jig">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Jig" loading="lazy">
                 </div>
-                <p class="card-meta">Tooling · 2023</p>
                 <h2 class="card-title">Assembly Jig</h2>
                 <p class="card-body">Modular jig for aligning and clamping sub-assemblies during hand-layup. Geometry derived from parent assembly.</p>
-                <div class="card-tags"><span class="tag">Tooling</span><span class="tag">Composites</span></div>
               </article>
             </div>
           </div>
@@ -994,20 +939,16 @@
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Product Render" loading="lazy">
                 </div>
-                <p class="card-meta">Render · 2024</p>
                 <h2 class="card-title">Product Visualisation</h2>
                 <p class="card-body">STEP import → Blender pipeline for client presentation renders. PBR materials and HDRI studio lighting.</p>
-                <div class="card-tags"><span class="tag">Cycles</span><span class="tag">PBR</span><span class="tag">STEP Import</span></div>
               </article>
               <article class="card" data-project="fluid-sim">
                 <div class="card-img-wrap">
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Fluid Sim" loading="lazy">
                 </div>
-                <p class="card-meta">Simulation · 2024</p>
                 <h2 class="card-title">Fluid Dynamics Study</h2>
                 <p class="card-body">Mantaflow fluid sim to visualise coolant flow through a manifold design before committing to tooling.</p>
-                <div class="card-tags"><span class="tag">Mantaflow</span><span class="tag">Simulation</span></div>
               </article>
             </div>
           </div>
@@ -1022,10 +963,8 @@
                   <canvas aria-hidden="true"></canvas>
                   <img src="https://placehold.co/800x600/181818/BA8530?text=Project+Image" alt="Exploded View" loading="lazy">
                 </div>
-                <p class="card-meta">Animation · 2023</p>
                 <h2 class="card-title">Exploded Assembly Animation</h2>
                 <p class="card-body">Rigged exploded-view showing assembly sequence for a multi-part mechanism. Exported as looping MP4 for documentation.</p>
-                <div class="card-tags"><span class="tag">Animation</span><span class="tag">Technical</span></div>
               </article>
             </div>
           </div>
@@ -1271,16 +1210,12 @@
     if (!project) return;
 
     detailContent.innerHTML = `
-      <p class="detail-meta">${project.meta}</p>
       <h1 class="detail-title">${project.title}</h1>
       <div class="detail-hero">
         <canvas aria-hidden="true"></canvas>
         <img src="${project.image}" alt="${project.title}" loading="eager">
       </div>
       <p class="detail-body">${project.body}</p>
-      <div class="detail-tags">
-        ${project.tags.map(t => `<span class="tag">${t}</span>`).join('')}
-      </div>
     `;
 
     // render the pentone canvas for the newly-inserted hero image
