@@ -14,6 +14,7 @@
     :root {
       --teal:    #5C7F71;
       --red:     #802520;
+      --bright-red: #D12B06;
       --gold:    #BA8530;
       --black:   #181818;
       --white:   #F5EDDC;
@@ -76,17 +77,44 @@
     }
 
     nav {
+      position: relative;
       max-width: var(--grid);
       margin: 0 auto;
       padding: 0 var(--gap);
       display: flex;
       gap: 12px;
     }
+    /*
+      TUNER-STYLE TAB INDICATOR
+      ─────────────────────────────────────────────────────
+      .nav-track is one continuous black bar spanning the full
+      width of the nav (from Projects to About Me), replacing the
+      old per-button border-top that used to jump between tabs.
+      .nav-indicator is a small rust rectangle that slides along
+      this track via a JS-calculated `left` position, landing above
+      whichever tab is currently active or hovered — like the
+      tuning needle on an FM/AM radio dial sliding across the band.
+    */
+    .nav-track {
+      position: absolute;
+      top: 0;
+      left: var(--gap);
+      width: 0; /* set via JS to match the actual width of the tab buttons */
+      height: 4px;
+      background: var(--black);
+    }
+    .nav-indicator {
+      position: absolute;
+      top: 0;
+      height: 4px;
+      width: 16px;
+      background: var(--bright-red);
+      transition: left 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+    }
     .tab-btn {
       background: none;
       border: none;
-      border-top: 3px solid transparent;
-      padding: 10px 28px 10px 0;
+      padding: 13px 28px 10px 0;
       font-family: var(--font);
       font-size: 11px;
       font-weight: 700;
@@ -94,11 +122,9 @@
       text-transform: uppercase;
       color: var(--grey);
       cursor: pointer;
-      transition: border-color .15s;
       display: flex;
       align-items: center;
     }
-    .tab-btn.active { border-top-color: var(--rust); }
 
     /* ─── LOGO CIRCLE ─────────────────────────────────────────── */
     .tab-logo {
@@ -205,7 +231,14 @@
       left: 0;
       right: 0;
       bottom: 0;
-      overflow: hidden; /* clips the slider during the slide animation */
+      display: flex;
+    }
+    /* content area takes all space except the knob sidebar */
+    .content-area {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden; /* clips the view-slider during slide animation */
+      position: relative;
     }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
@@ -237,7 +270,14 @@
       min-width: 0;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+      /* hide the native scrollbar so it doesn't appear between
+         the content and the knob sidebar — scrolling still works
+         via wheel/touch/keyboard */
+      scrollbar-width: none;        /* Firefox */
+      -ms-overflow-style: none;     /* IE/Edge */
     }
+    .tab-view::-webkit-scrollbar,
+    .detail-view::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
     /* Back button */
     .detail-back-btn {
@@ -626,6 +666,52 @@
     }
     .skill-chip.highlight { background: var(--black); color: var(--white); }
 
+    /* ─── FREQUENCY KNOB SIDEBAR ─────────────────────────────── */
+    .knob-sidebar {
+      width: 120px;
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--white);
+      border-left: var(--rule-lt);
+    }
+    /* custom scrollbar on the right edge of the knob sidebar */
+    .custom-scrollbar {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 8px;
+      height: 100%;
+      background: rgba(24,24,24,0.06);
+    }
+    .custom-scrollbar-thumb {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100%;
+      background: var(--grey);
+      border-radius: 4px;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+      cursor: pointer;
+    }
+    .custom-scrollbar:hover .custom-scrollbar-thumb { opacity: 0.8; }
+    #freq-knob-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      user-select: none;
+    }
+    #freq-knob {
+      cursor: grab;
+      display: block;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+    }
+    #freq-knob:active { cursor: grabbing; }
+    @media (max-width: 900px) { .knob-sidebar { display: none; } }
+
     /* ─── FOOTER ─────────────────────────────────────────────── */
     footer {
       border-top: var(--rule);
@@ -671,6 +757,8 @@
       <span class="site-discipline">Mechanical Design &amp; 3D Modelling</span>
     </div>
     <nav role="tablist" aria-label="Portfolio sections">
+      <div class="nav-track" aria-hidden="true"></div>
+      <div class="nav-indicator" id="nav-indicator" aria-hidden="true"></div>
       <button class="tab-btn active" role="tab" aria-selected="true" data-panel="projects">
         <span class="tab-logo">
           <span class="tab-logo-inner">
@@ -721,8 +809,11 @@
     </nav>
   </header>
 
+  <!-- ═══ FREQUENCY KNOB ══════════════════════════════════════ -->
+
   <main>
-    <div class="view-slider" id="view-slider">
+    <div class="content-area">
+      <div class="view-slider" id="view-slider">
     <div class="tab-view">
 
     <!-- ══ PROJECTS ═══════════════════════════════════════════ -->
@@ -1033,6 +1124,23 @@
     </div>
 
     </div><!-- /.view-slider -->
+    </div><!-- /.content-area -->
+
+    <div class="knob-sidebar">
+      <div class="custom-scrollbar" id="custom-scrollbar">
+        <div class="custom-scrollbar-thumb" id="custom-scrollbar-thumb"></div>
+      </div>
+      <div id="freq-knob-wrap" aria-hidden="true">
+        <svg id="freq-knob" viewBox="0 0 120 120" width="90" height="90">
+          <g id="knob-body">
+            <circle cx="60" cy="60" r="44" fill="#1A1A1A" stroke="#2a2a2a" stroke-width="1"/>
+            <g id="knob-grip"></g>
+            <circle cx="60" cy="60" r="8" fill="#222" stroke="#444" stroke-width="1"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -1096,6 +1204,47 @@
   const tabBtns   = document.querySelectorAll('.tab-btn');
   const tabPanels = document.querySelectorAll('.tab-panel');
 
+  // ─── Tuner-style nav indicator ──────────────────────────────
+  // Slides the rust rectangle to sit centered above whichever tab
+  // button is currently active, along the continuous black track.
+  const navEl        = document.querySelector('nav');
+  const navIndicator = document.getElementById('nav-indicator');
+  const navTrack      = document.querySelector('.nav-track');
+
+  function updateNavTrack() {
+    if (!navTrack || !navEl) return;
+    const navRect = navEl.getBoundingClientRect();
+    const lastBtn = tabBtns[tabBtns.length - 1];
+    if (!lastBtn) return;
+    const lastRect = lastBtn.getBoundingClientRect();
+    // track spans exactly from the first button's left edge (the
+    // nav's own left padding) to the last button's (About Me) right
+    // edge — not the full nav width, which would run past it
+    const width = lastRect.right - navRect.left - parseFloat(getComputedStyle(navEl).paddingLeft);
+    navTrack.style.width = width + 'px';
+  }
+
+  function updateNavIndicator() {
+    const activeBtn = document.querySelector('.tab-btn.active');
+    if (!activeBtn || !navIndicator || !navEl || !navTrack) return;
+
+    const navRect = navEl.getBoundingClientRect();
+    const indicatorWidth = navIndicator.offsetWidth;
+    const trackWidth = parseFloat(navTrack.style.width) || 0;
+    const trackLeft = navTrack.getBoundingClientRect().left - navRect.left;
+
+    // measure the center of the actual circle element (tab-logo or
+    // about-tab-circle) rather than approximating with a fixed offset
+    const circle = activeBtn.querySelector('.tab-logo-inner, .about-tab-circle-inner, .tab-logo, .about-tab-circle');
+    const ref = circle || activeBtn;
+    const refRect = ref.getBoundingClientRect();
+    const circleCenterX = refRect.left + refRect.width / 2 - navRect.left;
+
+    const raw = circleCenterX - indicatorWidth / 2;
+    const clamped = Math.max(trackLeft, Math.min(trackLeft + trackWidth - indicatorWidth, raw));
+    navIndicator.style.left = clamped + 'px';
+  }
+
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.dataset.panel;
@@ -1111,6 +1260,7 @@
       document.getElementById(target).classList.add('active');
       slider.classList.remove('showing-detail');
       document.querySelector('.tab-view').scrollTop = 0;
+      updateNavIndicator();
 
       if (wasShowingDetail) {
         // .tab-view was sitting off-screen behind a CSS transform
@@ -1295,8 +1445,223 @@
     });
   }
 
-  updateYearEdgeOffsets();
-  window.addEventListener('resize', updateYearEdgeOffsets);
+  // ═══════════════════════════════════════════════════════════
+  // FREQUENCY KNOB — spins freely, no arc limit
+  // The red slider's own boundaries are the only constraint.
+  // ═══════════════════════════════════════════════════════════
+  (function() {
+    const TABS = ['projects','solidworks','onshape','blender','about'];
+    const N = TABS.length;
+
+    // Total rotation to sweep from first to last tab (arbitrary,
+    // feels natural — one full turn = 360°, we use 270° sweep)
+    const SWEEP = 270;
+
+    // cumulative knob angle (grows/shrinks freely, no clamping)
+    let knobAngle = 0;
+    let currentTab = 0;
+
+    // map tab index to knob angle
+    function tabToAngle(i) {
+      return (i / (N - 1)) * SWEEP;
+    }
+
+    // map any cumulative knob angle to 0–1 progress (clamped for
+    // the slider only — the knob itself ignores this clamp)
+    function angleToProgress(angle) {
+      return Math.max(0, Math.min(1, angle / SWEEP));
+    }
+
+    // snap to nearest tab based on progress
+    function progressToNearestTab(progress) {
+      const clamped = Math.max(0, Math.min(1, progress));
+      return Math.round(clamped * (N - 1));
+    }
+
+    const knob = document.getElementById('freq-knob');
+    const body = document.getElementById('knob-body');
+    const grip = document.getElementById('knob-grip');
+
+    // build grip dots
+    for (let g = 0; g < 24; g++) {
+      const ga = (g / 24) * 360;
+      const gr = (ga - 90) * Math.PI / 180;
+      const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('cx', 60 + 36 * Math.cos(gr));
+      dot.setAttribute('cy', 60 + 36 * Math.sin(gr));
+      dot.setAttribute('r', '1.5');
+      dot.setAttribute('fill', '#333');
+      grip.appendChild(dot);
+    }
+
+    // move indicator to fractional position (0–1), clamped to track
+    function setIndicatorProgress(progress) {
+      const track = document.querySelector('.nav-track');
+      const indicator = document.getElementById('nav-indicator');
+      const nav = document.querySelector('nav');
+      if (!track || !indicator || !nav) return;
+      const trackWidth = parseFloat(track.style.width) || 0;
+      const indicatorWidth = indicator.offsetWidth;
+      const trackLeft = track.getBoundingClientRect().left - nav.getBoundingClientRect().left;
+      const raw = trackLeft + Math.max(0, Math.min(1, progress)) * trackWidth - indicatorWidth / 2;
+      const clamped = Math.max(trackLeft, Math.min(trackLeft + trackWidth - indicatorWidth, raw));
+      indicator.style.transition = 'none';
+      indicator.style.left = clamped + 'px';
+    }
+
+    function applyKnobAngle(angle, animate) {
+      knobAngle = angle;
+      body.style.transition = animate ? 'transform 0.4s cubic-bezier(0.65,0,0.35,1)' : 'none';
+      body.style.transformOrigin = '60px 60px';
+      body.style.transform = `rotate(${angle}deg)`;
+      setIndicatorProgress(angleToProgress(angle));
+    }
+
+    function setKnobToTab(i, animate) {
+      currentTab = i;
+      applyKnobAngle(tabToAngle(i), animate);
+      // use the precise circle-center measurement for the final
+      // snapped position instead of the linear progress estimate
+      if (animate) {
+        setTimeout(() => updateNavIndicator(), 0);
+      } else {
+        updateNavIndicator();
+      }
+    }
+
+    // ── Sync: tab click → knob ────────────────────────────────
+    const tabBtnsAll = document.querySelectorAll('.tab-btn');
+    tabBtnsAll.forEach((btn, i) => {
+      btn.addEventListener('click', () => setKnobToTab(i, true));
+    });
+
+    // ── Drag ──────────────────────────────────────────────────
+    let dragging = false;
+    let prevCursorAngle = 0;
+
+    function getCursorAngle(e) {
+      const rect = knob.getBoundingClientRect();
+      const cx = rect.left + rect.width  / 2;
+      const cy = rect.top  + rect.height / 2;
+      const px = (e.touches ? e.touches[0].clientX : e.clientX) - cx;
+      const py = (e.touches ? e.touches[0].clientY : e.clientY) - cy;
+      return Math.atan2(px, -py) * 180 / Math.PI;
+    }
+
+    knob.addEventListener('mousedown', e => {
+      dragging = true;
+      prevCursorAngle = getCursorAngle(e);
+      e.preventDefault();
+    });
+    knob.addEventListener('touchstart', e => {
+      dragging = true;
+      prevCursorAngle = getCursorAngle(e);
+    }, { passive: true });
+
+    function handleMove(e) {
+      if (!dragging) return;
+      const cur = getCursorAngle(e);
+      // per-frame delta — each step is tiny so ±180 wrap is
+      // immediately correctable without accumulation error
+      let delta = cur - prevCursorAngle;
+      if (delta >  180) delta -= 360;
+      if (delta < -180) delta += 360;
+      prevCursorAngle = cur;
+      applyKnobAngle(knobAngle + delta, false);
+    }
+
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('touchmove', handleMove, { passive: true });
+
+    function finishDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      // snap to nearest tab
+      const target = progressToNearestTab(angleToProgress(knobAngle));
+      setKnobToTab(target, true);
+      const btn = tabBtnsAll[target];
+      if (btn && !btn.classList.contains('active')) btn.click();
+    }
+
+    window.addEventListener('mouseup',  finishDrag);
+    window.addEventListener('touchend', finishDrag);
+
+    // initial position
+    setKnobToTab(0, false);
+  })();
+
+
+
+  // size the track to end exactly at "About Me" and position the
+  // tuner indicator correctly on first load; keep both aligned if
+  // the window is resized (button positions shift on narrower
+  // screens where labels/padding compress)
+  updateNavTrack();
+  updateNavIndicator();
+  window.addEventListener('resize', () => {
+    updateNavTrack();
+    updateNavIndicator();
+    updateCustomScrollbar();
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // CUSTOM SCROLLBAR — synced to .tab-view's internal scroll
+  // ═══════════════════════════════════════════════════════════
+  const scrollTrack = document.getElementById('custom-scrollbar');
+  const scrollThumb = document.getElementById('custom-scrollbar-thumb');
+
+  function updateCustomScrollbar() {
+    const view = document.querySelector('.tab-view');
+    if (!view || !scrollTrack || !scrollThumb) return;
+    const trackH    = scrollTrack.clientHeight;
+    const scrollH   = view.scrollHeight;
+    const clientH   = view.clientHeight;
+    if (scrollH <= clientH) { scrollThumb.style.display = 'none'; return; }
+    scrollThumb.style.display = 'block';
+    const thumbH  = Math.max(40, (clientH / scrollH) * trackH);
+    const thumbTop = (view.scrollTop / (scrollH - clientH)) * (trackH - thumbH);
+    scrollThumb.style.height = thumbH + 'px';
+    scrollThumb.style.top    = thumbTop + 'px';
+  }
+
+  // sync on scroll
+  document.querySelector('.tab-view').addEventListener('scroll', updateCustomScrollbar, { passive: true });
+  updateCustomScrollbar();
+
+  // click on track to jump
+  scrollTrack.addEventListener('click', e => {
+    if (e.target === scrollThumb) return;
+    const view    = document.querySelector('.tab-view');
+    const trackH  = scrollTrack.clientHeight;
+    const thumbH  = parseFloat(scrollThumb.style.height) || 40;
+    const clickY  = e.clientY - scrollTrack.getBoundingClientRect().top;
+    const ratio   = (clickY - thumbH / 2) / (trackH - thumbH);
+    view.scrollTop = ratio * (view.scrollHeight - view.clientHeight);
+  });
+
+  // drag the thumb
+  let thumbDragging = false, thumbDragStartY = 0, thumbDragStartScroll = 0;
+  scrollThumb.addEventListener('mousedown', e => {
+    thumbDragging = true;
+    thumbDragStartY = e.clientY;
+    thumbDragStartScroll = document.querySelector('.tab-view').scrollTop;
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!thumbDragging) return;
+    const view    = document.querySelector('.tab-view');
+    const trackH  = scrollTrack.clientHeight;
+    const thumbH  = parseFloat(scrollThumb.style.height) || 40;
+    const delta   = e.clientY - thumbDragStartY;
+    const ratio   = delta / (trackH - thumbH);
+    view.scrollTop = thumbDragStartScroll + ratio * (view.scrollHeight - view.clientHeight);
+  });
+  window.addEventListener('mouseup', () => { thumbDragging = false; });
+
+  // re-sync when switching tabs (new content height)
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => setTimeout(updateCustomScrollbar, 50));
+  });
   </script>
 
 </body>
